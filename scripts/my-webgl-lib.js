@@ -6,6 +6,18 @@ function degToRad(d) {
     return d * Math.PI / 180;
 }
 
+function addVec3(a,b){
+    return new Array(a[0]+b[0], a[1]+b[1], a[2]+b[2]);
+}
+
+function multiplyVec3(a,b){
+    return new Array(a[0]*b[0], a[1]*b[1], a[2]*b[2]);
+}
+
+function multiplyVec3Scalar(v, scalar){
+    return new Array(v[0]*scalar, v[1]*scalar, v[2]*scalar);
+}
+
 function getManipulationMatrix(matrix, scale, rotation, translation){
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
     matrix = m4.xRotate(matrix, rotation[0]);
@@ -16,13 +28,13 @@ function getManipulationMatrix(matrix, scale, rotation, translation){
     return matrix;
 }
 
-function getViewProjectionMatrix(gl, fieldOfViewRadians, zNear, zFar, cameraPosition, lookAtTarget, lookUpVector){
+function getViewProjectionMatrixLookAt(gl, lookAtTarget, cameraSettings){
+    if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-        
-    //var up = [0,1,0]; //View-up vector
+    var projectionMatrix = m4.perspective(cameraSettings.fieldOfViewRadians, aspect, 
+        cameraSettings.zNear, cameraSettings.zFar);
 
-    var cameraMatrix = m4.lookAt(cameraPosition, lookAtTarget, lookUpVector);
+    var cameraMatrix = m4.lookAt(cameraSettings.cameraPosition, lookAtTarget, cameraSettings.lookUpVector);
 
     var viewMatrix = m4.inverse(cameraMatrix);
 
@@ -31,16 +43,18 @@ function getViewProjectionMatrix(gl, fieldOfViewRadians, zNear, zFar, cameraPosi
     return viewProjectionMatrix;
 }
 
-function getViewProjectionMatrix(gl, fieldOfViewRadians, zNear, zFar, cameraPosition, cameraRotation){
-
+function getViewProjectionMatrix(gl, cameraSettings){
+    if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
+    var projectionMatrix = m4.perspective(cameraSettings.fieldOfViewRadians, aspect, 
+        cameraSettings.zNear, cameraSettings.zFar);
     
     var cameraMatrix = m4.identity();
-    cameraMatrix= m4.translate(cameraMatrix,cameraPosition[0],cameraPosition[1],cameraPosition[2]);
-    cameraMatrix = m4.xRotate(cameraMatrix, cameraRotation[0]);
-    cameraMatrix = m4.yRotate(cameraMatrix, cameraRotation[1]);
-    cameraMatrix = m4.zRotate(cameraMatrix, cameraRotation[2]);
+    cameraMatrix= m4.translate(cameraMatrix, 
+        cameraSettings.cameraPosition[0],cameraSettings.cameraPosition[1],cameraSettings.cameraPosition[2]);
+    cameraMatrix = m4.xRotate(cameraMatrix, cameraSettings.cameraRotation[0]);
+    cameraMatrix = m4.yRotate(cameraMatrix, cameraSettings.cameraRotation[1]);
+    cameraMatrix = m4.zRotate(cameraMatrix, cameraSettings.cameraRotation[2]);
 
     var viewMatrix = m4.inverse(cameraMatrix);
 

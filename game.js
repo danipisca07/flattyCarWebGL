@@ -5,17 +5,18 @@ var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [20, 20, 20];
 
-
 var offset = [2,2,0];
 var offsetAngle = [degToRad(0), degToRad(0), degToRad(0)];
 
-var cameraPosition = [0, 0, 400];
-var cameraRotation = [degToRad(0), degToRad(0), degToRad(0)];
-var lookAtTarget = [0, 0, 0];
-var lookUpVector = [0, 1, 0];
-var fieldOfViewRadians = degToRad(48);
-var zNear = 1;
-var zFar = 2000;
+var cameraSettings = {
+    cameraPosition : [0, 0, 400],
+    //cameraRotation : [degToRad(0), degToRad(0), degToRad(0)],
+    lookUpVector : [0, 1, 0],
+    fieldOfViewRadians : degToRad(48),
+    zNear : 1,
+    zFar : 2000,
+}
+var cameraTarget = [0, 0, 0];
 
 var lightPosition = [-100, -100, -400];
 
@@ -70,8 +71,8 @@ function drawScene() {
 
     for(var i= 0; i<nObjs; i++) {
 
-        var worldMatrix = getManipulationMatrix(i); //E' quella che sposta/scala/routa l'oggetto nello spazio
-        var viewProjectionMatrix = getViewProjectionMatrix(gl, fieldOfViewRadians, zNear, zFar, cameraPosition, lookAtTarget, lookUpVector); //E' quella che da l'effetto prospettivo e relativo alla camera
+        var worldMatrix = getMatrix(i); //E' quella che sposta/scala/routa l'oggetto nello spazio
+        var viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget); //E' quella che da l'effetto prospettivo e relativo alla camera
         var worldInverseTranspose = m4.transpose(m4.inverse(worldMatrix));
         computedUniforms = {
             u_lightWorldPosition : lightPosition,
@@ -94,13 +95,11 @@ function drawScene() {
 main();
 
 //Lui la chiama WORLD matrix, in ogni caso è quella che manipola tutta la scena
-function getManipulationMatrix(i){
-    var matrix = m4.identity();
-    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    matrix = m4.xRotate(matrix, rotation[0]+offsetAngle[0]*i);
-    matrix = m4.yRotate(matrix, rotation[1]+offsetAngle[0]*i);
-    matrix = m4.zRotate(matrix, rotation[2]+offsetAngle[0]*i);
-    matrix = m4.translate(matrix, translation[0]+offset[0]*(i%nPerRow), translation[1]+offset[1]*Math.floor(i/nPerRow), translation[2]+offset[2]*i);
-
+function getMatrix(i){
+    var totOffset = [ translation[0]+offset[0]*(i%nPerRow), 
+        translation[1]+offset[1]*Math.floor(i/nPerRow), 
+        translation[2]+offset[2]*i];
+    var totRotation = addVec3(rotation, multiplyVec3Scalar(offsetAngle, i));
+    var matrix = getManipulationMatrix(m4.identity(), scale, totRotation, totOffset);
     return matrix;
 }
