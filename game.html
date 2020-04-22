@@ -1,0 +1,74 @@
+<html>
+    <head>
+        <style>
+            @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+            body {
+            margin: 0;
+            }
+            canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            }
+        </style>
+        <script type="text/javascript" src="../libs/webgl-utils.js"></script>
+        <script type="text/javascript" src="../libs/lessons-helper.js"></script>
+        <script type="text/javascript" src="../libs/webgl-lessons-ui.js"></script>
+        <script type="text/javascript" src="../libs/gui-utils.js"></script>
+        <script type="text/javascript" src="../libs/m4.js"></script>
+        <script type="text/javascript" src="../scripts/my-objects.js"></script>
+        <script type="text/javascript" src="../scripts/my-webgl-lib.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <div id="uiContainer">
+          <div id="ui">
+            <div id="fieldOfView"></div>
+            <div id="x"></div>
+            <div id="y"></div>
+            <div id="z"></div>
+            <div id="angleX"></div>
+            <div id="angleY"></div>
+            <div id="angleZ"></div>
+            <div id="cameraZ"></div>
+            <div id="cameraAngleX"></div>
+            <div id="cameraAngleY"></div>
+            <div id="cameraAngleZ"></div>
+          </div>
+        </div>
+        <script  id="vertex-shader-2d" type="x-shader/x-vertex">
+            attribute vec4 a_position;
+            attribute vec3 a_normal;
+
+            uniform vec3 u_lightWorldPosition;
+            uniform mat4 u_world;
+            uniform mat4 u_worldViewProjection;
+            uniform mat4 u_worldInverseTranspose;
+            
+            varying vec3 v_normal;
+            varying vec3 v_surfaceToLight;
+
+            void main() {
+                gl_Position = u_worldViewProjection * a_position;
+                v_normal = mat3(u_worldInverseTranspose) * a_normal;
+                vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+                v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+            }
+        </script>
+        <script  id="fragment-shader-2d" type="x-shader/x-fragment">
+            precision mediump float;
+            uniform vec4 u_color;
+            varying vec3 v_normal;
+            varying vec3 v_surfaceToLight;
+            
+            void main() {
+                vec3 normal = normalize(v_normal);
+                vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+                float light = dot(normal, surfaceToLightDirection);
+                gl_FragColor = u_color;
+                gl_FragColor.rgb *= light;
+            }
+        </script>
+        <script type="text/javascript" src="./game.js"></script>
+</body>
+</html>
