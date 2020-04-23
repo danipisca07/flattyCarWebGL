@@ -4,7 +4,7 @@ var nObjs = 20;
 var nPerRow = 5;
 var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
-var scale = [1,1,1]; //1,1,1
+var scale = [2,2,2]; //1,1,1
 
 var offset = [2,2,0];
 var offsetAngle = [degToRad(0), degToRad(0), degToRad(0)];
@@ -45,7 +45,9 @@ function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-    renderVCar(gl, program);
+    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
+    let baseWorldMatrix = getManipulationMatrix(m4.identity(), scale, rotation, translation);
+    renderVCar(gl, baseWorldMatrix, viewProjectionMatrix);
 }
 main();
 

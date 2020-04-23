@@ -61,13 +61,9 @@ var vCar = {
         
 }
 
-function renderVCar(gl){
-    
-    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
-    
-    let baseMatrix = getManipulationMatrix(m4.identity(), scale, rotation, translation);
-    let worldMatrices = vCar.getWorldMatrices(baseMatrix,0);
+function renderVCar(gl, baseWorldMatrix, viewProjectionMatrix){
 
+    let worldMatrices = vCar.getWorldMatrices(baseWorldMatrix,0);
     worldMatrices.forEach((element) => renderElement(gl, vCar, element, viewProjectionMatrix));
     
 }
@@ -75,7 +71,6 @@ function renderVCar(gl){
 function renderElement(gl, model, worldMatrix, viewProjectionMatrix){
     let program = webglUtils.createProgramFromSources(gl, [ model.vertexShader, model.fragmentShader]);
 
-    //let worldMatrix = getManipulationMatrix(basicMatrix, scale, rotation, translation);
     let worldInverseTranspose = m4.transpose(m4.inverse(worldMatrix));
     let uniforms = {
         u_world : worldMatrix,
