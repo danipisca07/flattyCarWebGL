@@ -11,13 +11,12 @@
             display: block;
             }
         </style>
-        <script type="text/javascript" src="../libs/webgl-utils.js"></script>
-        <script type="text/javascript" src="../libs/lessons-helper.js"></script>
-        <script type="text/javascript" src="../libs/webgl-lessons-ui.js"></script>
-        <script type="text/javascript" src="../libs/gui-utils.js"></script>
-        <script type="text/javascript" src="../libs/m4.js"></script>
+        <script type="text/javascript" src="../scripts/gui-utils.js"></script>
+        <script type="text/javascript" src="../scripts/webgl-lessons-ui.js"></script>
         <script type="text/javascript" src="../scripts/my-objects.js"></script>
         <script type="text/javascript" src="../scripts/my-webgl-lib.js"></script>
+        <script type="text/javascript" src="../scripts/webgl-utils.js"></script>
+        <script type="text/javascript" src="../scripts/m4.js"></script>
         <script type="text/javascript" src="../scripts/car.js"></script>
     </head>
     <body>
@@ -73,5 +72,49 @@
             }
         </script>
         <script type="text/javascript" src="./game.js"></script>
+        <script>
+            var key=[false,false,false,false];
+            const keys = {
+                W: 0, W_CODE: 87,
+                A: 1, A_CODE: 65,
+                S: 2, S_CODE: 83,
+                D: 3, D_CODE: 68,
+            }
+            window.addEventListener('keydown', doKeyDown, true);
+            window.addEventListener('keyup', doKeyUp, true);
+            function doKeyDown(e){
+                switch(e.keyCode){
+                    case keys.W_CODE:
+                        key[keys.W]=true;
+                        break;
+                    case keys.A_CODE:
+                        key[keys.A]=true;
+                        break;
+                    case keys.S_CODE:
+                        key[keys.S]=true;
+                        break;
+                    case keys.D_CODE:
+                        key[keys.D]=true;
+                        break;
+                }
+            }
+            function doKeyUp(e){
+                switch(e.keyCode){
+                    case keys.W_CODE:
+                        key[keys.W]=false;
+                        break;
+                    case keys.A_CODE:
+                        key[keys.A]=false;
+                        break;
+                    case keys.S_CODE:
+                        key[keys.S]=false;
+                        break;
+                    case keys.D_CODE:
+                        key[keys.D]=false;
+                        break;
+                }
+            }
+        </script>
+
 </body>
 </html>

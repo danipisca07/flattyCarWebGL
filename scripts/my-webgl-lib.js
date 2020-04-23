@@ -29,9 +29,9 @@ function getManipulationMatrix(matrix, scale, rotation, translation){
 
 function getLocalMatrix(matrix, scale, rotation, translation){
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
     matrix = m4.zRotate(matrix, rotation[2]);
+    matrix = m4.yRotate(matrix, rotation[1]);
+    matrix = m4.xRotate(matrix, rotation[0]);
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
     return matrix;
 }
