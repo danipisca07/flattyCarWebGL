@@ -4,7 +4,10 @@ var nObjs = 20;
 var nPerRow = 5;
 var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
-var scale = [2,2,2]; //1,1,1
+var scale = [1,1,1]; //1,1,1
+
+var mozzo = 0;
+var mozzo_step = degToRad(15);
 
 var offset = [2,2,0];
 var offsetAngle = [degToRad(0), degToRad(0), degToRad(0)];
@@ -35,19 +38,22 @@ function main() {
     if (!gl) { return; }
 
     setupUI();
-    drawScene();
+    //drawScene();
+    startAnimating(60, drawScene);
 }
 
 // Draw the scene.
-function drawScene() {
+function drawScene(elapsed) {
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
+
     let baseWorldMatrix = getManipulationMatrix(m4.identity(), scale, rotation, translation);
-    renderVCar(gl, baseWorldMatrix, viewProjectionMatrix);
+    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
+    mozzo -=mozzo_step;
+    renderVCar(gl, baseWorldMatrix, viewProjectionMatrix, mozzo);
 }
 main();
 

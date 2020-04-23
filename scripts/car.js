@@ -20,6 +20,13 @@ var vCar = {
         0,1,2, 0,2,3, 4,5,6, 4,6,7, 8,9,10, 8,10,11, 12,13,14, 
         12,14,15, 16,17,18, 16,18,19, 20,21,22, 20,22,23 
     ],
+    partsColor : [
+        [1, 0, 0, 1],
+        [0, 1, 0, 1],
+        [0, 0, 1, 1],
+        [1, 1, 0, 1],
+        [0, 1, 1, 1],
+    ],
     
     //WIREFRAME arrays
     verticesWF : [-1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1, -1,-1,1, 1,-1,1, 1,1,1, -1,1,1,],
@@ -46,29 +53,25 @@ var vCar = {
     //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
     getWorldMatrices : function(baseMatrix, mozzo){
         return [
-            
-            m4.scale(baseMatrix, 0.25, 0.14, 1),
-            m4.translate(
-                m4.xRotate(
-                    m4.scale(
-                        baseMatrix,
-                    0.1, 0.20, 0.20)
-                ,mozzo),
-             0.58,-0.05,0.8), //baseMatrix*S*R*T*postMatrix
-            
+            //baseMatrix*S*R*T
+            getLocalMatrix(baseMatrix, [0.25, 0.14, 1], [0,0,0], [0,0,0]), //Carlinga
+            getLocalMatrix(baseMatrix, [0.1, 0.20, 0.20], [mozzo, 0, 0], [0.4,-0.05,0.8]), //Ruota posteriore D (verde)
+            getLocalMatrix(baseMatrix, [0.1, 0.20, 0.20], [mozzo, 0, 0], [-0.4,-0.05,0.8]), //Ruota posteriore S (blu)
+            getLocalMatrix(baseMatrix, [0.08, 0.15, 0.15], [mozzo, 0, 0], [0.4,-0.05,-0.55]), //Ruota anteriore D (gialla)
+            getLocalMatrix(baseMatrix, [0.08, 0.15, 0.15], [mozzo, 0, 0], [-0.4,-0.05,-0.55]), //Ruota anteriore D (azzurra)
         ];
     }
         
 }
 
-function renderVCar(gl, baseWorldMatrix, viewProjectionMatrix){
-
-    let worldMatrices = vCar.getWorldMatrices(baseWorldMatrix,0);
-    worldMatrices.forEach((element) => renderElement(gl, vCar, element, viewProjectionMatrix));
+function renderVCar(gl, baseWorldMatrix, viewProjectionMatrix, mozzo){
+    
+    let worldMatrices = vCar.getWorldMatrices(baseWorldMatrix,mozzo);
+    worldMatrices.forEach((element, count) => renderElement(gl, vCar, count, element, viewProjectionMatrix));
     
 }
 
-function renderElement(gl, model, worldMatrix, viewProjectionMatrix){
+function renderElement(gl, model, partNumber, worldMatrix, viewProjectionMatrix){
     let program = webglUtils.createProgramFromSources(gl, [ model.vertexShader, model.fragmentShader]);
 
     let worldInverseTranspose = m4.transpose(m4.inverse(worldMatrix));
@@ -76,7 +79,7 @@ function renderElement(gl, model, worldMatrix, viewProjectionMatrix){
         u_world : worldMatrix,
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
         u_worldInverseTranspose : worldInverseTranspose,
-        u_color: [0.3,0.3,0.3,1],
+        u_color: model.partsColor[partNumber],
     }
 
     let arrays = {
@@ -84,7 +87,6 @@ function renderElement(gl, model, worldMatrix, viewProjectionMatrix){
         //colors: { data: model.colors, numComponents: 3, },
         indices: { data: model.indices, numComponents: 3,},
     }
-    uniforms.u_color= [0.3,0.3,0.3,1];
     setUpElementFromArrays(gl, program, arrays, uniforms);
     gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
 
