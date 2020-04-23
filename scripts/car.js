@@ -9,16 +9,16 @@ var vCar = {
         -1,1,-1, -1,1,1, 1,1,1, 1,1,-1,
     ],
     colors: [
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,
-        0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9,  0.9,0.9,0.9, 
+        1,0,0,  1,0,0,  1,0,0,  1,0,0,
+        1,0,0,  1,0,0,  0,1,0,  0,1,0,
+        0,1,0,  0,1,0,  0,1,0,  0,1,0,
+        0,0,1,  0,0,1,  0,0,1,  0,0,1,
+        0,0,1,  0,0,1,  1,1,0,  1,1,0,
+        1,1,0,  1,1,0,  1,1,0,  1,1,0,
     ],
     indices : [
-        0,1,2, 0,2,3, 4,5,6, 4,6,7, 8,9,10, 8,10,11, 12,13,14, 
-        12,14,15, 16,17,18, 16,18,19, 20,21,22, 20,22,23 
+        2,1,0, 3,2,0, 4,5,6, 4,6,7, 10,9,8, 11,10,8, 12,13,14, 
+        12,14,15, 18,17,16, 19,18,16, 20,21,22, 20,22,23 
     ],
     partsColor : [
         [1, 0, 0, 1],
@@ -38,16 +38,21 @@ var vCar = {
 
     //SHADERS scripts
     vertexShader : `attribute vec4 a_position;
+    //attribute vec3 a_colors;
     uniform mat4 u_world; 
     uniform mat4 u_worldViewProjection; 
     uniform mat4 u_worldInverseTranspose;
+    //varying vec3 v_color;
     void main(void) { //pre-built function
         gl_Position = u_worldViewProjection * a_position;
+        //v_color = a_colors;
     }`,
     fragmentShader : `precision mediump float; 
+    //varying vec3 v_color;
     uniform vec4 u_color;
     void main(void) {
         gl_FragColor = u_color;
+        //gl_FragColor = vec4(v_color,1);
     }`,
 
     //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
