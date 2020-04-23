@@ -52,6 +52,7 @@ var vCar = {
 
     //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
     getWorldMatrices : function(baseMatrix){
+        baseMatrix = getLocalMatrix(baseMatrix, [1,1,1], [0,degToRad(this.facing),0], [this.px, this.py, this.pz]);
         return [
             //baseMatrix*S*R*T
             getLocalMatrix(baseMatrix, [0.25, 0.14, 1], [0,0,0], [0,0,0]), //Carlinga
@@ -168,9 +169,6 @@ function renderVCar(gl, baseWorldMatrix, viewProjectionMatrix, keyPressed){
     vCar.px+=vCar.vx;
     vCar.py+=vCar.vy;
     vCar.pz+=vCar.vz;
-
-    baseWorldMatrix = m4.translate(baseWorldMatrix, vCar.px, vCar.py, vCar.pz);
-    baseWorldMatrix = m4.yRotate(baseWorldMatrix, degToRad(vCar.facing));
 
     let worldMatrices = vCar.getWorldMatrices(baseWorldMatrix);
     worldMatrices.forEach((element, count) => renderElement(gl, vCar, count, element, viewProjectionMatrix));

@@ -55,12 +55,3 @@ function drawScene(elapsed) {
 }
 main();
 
-//Lui la chiama WORLD matrix, in ogni caso è quella che manipola tutta la scena
-function getMatrix(i){
-    var totOffset = [ translation[0]+offset[0]*(i%nPerRow), 
-        translation[1]+offset[1]*Math.floor(i/nPerRow), 
-        translation[2]+offset[2]*i];
-    var totRotation = addVec3(rotation, multiplyVec3Scalar(offsetAngle, i));
-    var matrix = getManipulationMatrix(m4.identity(), scale, totRotation, totOffset);
-    return matrix;
-}
