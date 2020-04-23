@@ -62,3 +62,15 @@ function getViewProjectionMatrix(gl, cameraSettings){
 
     return viewProjectionMatrix;
 }
+
+function setUpElementFromArrays(gl, program, arrays, uniforms){
+
+    gl.useProgram(program);
+    let uniformSetters = webglUtils.createUniformSetters(gl,program);
+    let attributeSetters = webglUtils.createAttributeSetters(gl,program);
+    let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+    
+    webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
+
+    webglUtils.setUniforms(uniformSetters, uniforms);
+}

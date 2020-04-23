@@ -7,6 +7,8 @@
     webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
     webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
     webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
+    webglLessonsUI.setupSlider("#cameraX", {value: cameraSettings.cameraPosition[0], slide: updateCameraPosition(0), min: -500, max: 500});
+    webglLessonsUI.setupSlider("#cameraY", {value: cameraSettings.cameraPosition[1], slide: updateCameraPosition(1), min: -500, max: 500});
     webglLessonsUI.setupSlider("#cameraZ", {value: cameraSettings.cameraPosition[2], slide: updateCameraPosition(2), min: -500, max: 500});
     /* webglLessonsUI.setupSlider("#cameraAngleX", {value: radToDeg(cameraSettings.cameraRotation[0]), slide: updateCameraRotation(0), max: 360});
     webglLessonsUI.setupSlider("#cameraAngleY", {value: radToDeg(cameraSettings.cameraRotation[1]), slide: updateCameraRotation(1), max: 360});
@@ -28,7 +30,7 @@ function updateFieldOfView(event, ui) {
 
   function updateCameraPosition(index) {
     return function(event, ui) {
-      cameraPosition[index] = ui.value;
+      cameraSettings.cameraPosition[index] = ui.value;
       drawScene();
     };
   }
@@ -46,7 +48,7 @@ function updateFieldOfView(event, ui) {
     return function(event, ui) {
       var angleInDegrees = ui.value;
       var angleInRadians = angleInDegrees * Math.PI / 180;
-      cameraRotation[index] = angleInRadians;
+      cameraSettings.cameraRotation[index] = angleInRadians;
       drawScene();
     };
   }
