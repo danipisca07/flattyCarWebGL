@@ -50,8 +50,46 @@ function drawScene(elapsed) {
     let baseWorldMatrix = getManipulationMatrix(m4.identity(), scale, rotation, translation);
     let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
     
-    renderFloor(gl, viewProjectionMatrix);
-    renderVCar(gl, baseWorldMatrix, viewProjectionMatrix, key);
+    renderElement(gl, floor, m4.identity(), viewProjectionMatrix);
+    vCar.doStep(key);
+    renderElement(gl, vCar, baseWorldMatrix, viewProjectionMatrix);
 }
+
+var key=[false,false,false,false]; //Vedi car.js per i codici tasti
+window.addEventListener('keydown', doKeyDown, true);
+function doKeyDown(e){
+    switch(e.keyCode){
+        case keys.W_CODE:
+            key[keys.W]=true;
+            break;
+        case keys.A_CODE:
+            key[keys.A]=true;
+            break;
+        case keys.S_CODE:
+            key[keys.S]=true;
+            break;
+        case keys.D_CODE:
+            key[keys.D]=true;
+            break;
+    }
+}
+window.addEventListener('keyup', doKeyUp, true);
+function doKeyUp(e){
+    switch(e.keyCode){
+        case keys.W_CODE:
+            key[keys.W]=false;
+            break;
+        case keys.A_CODE:
+            key[keys.A]=false;
+            break;
+        case keys.S_CODE:
+            key[keys.S]=false;
+            break;
+        case keys.D_CODE:
+            key[keys.D]=false;
+            break;
+    }
+}
+
 main();
 

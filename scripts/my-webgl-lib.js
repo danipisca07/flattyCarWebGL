@@ -1,3 +1,4 @@
+//FUNZIONI TRIGONOMETRICHE
 function radToDeg(r) {
     return r * 180 / Math.PI;
 }
@@ -6,6 +7,7 @@ function degToRad(d) {
     return d * Math.PI / 180;
 }
 
+//FUNZIONI VETTORI TRIDIMENSIONALI
 function addVec3(a,b){
     return new Array(a[0]+b[0], a[1]+b[1], a[2]+b[2]);
 }
@@ -18,6 +20,7 @@ function multiplyVec3Scalar(v, scalar){
     return new Array(v[0]*scalar, v[1]*scalar, v[2]*scalar);
 }
 
+//FUNZIONI MATRICI
 function getManipulationMatrix(matrix, scale, rotation, translation){
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
     matrix = m4.xRotate(matrix, rotation[0]);
@@ -83,6 +86,7 @@ function setUpElementFromArrays(gl, program, arrays, uniforms){
     webglUtils.setUniforms(uniformSetters, uniforms);
 }
 
+// ANIMAZIONE
 var fps, fpsInterval, now, then, elapsed;
 function startAnimating(fps, renderFunction){
     fpsInterval = 1000 / fps;
@@ -97,4 +101,38 @@ function animate() {
         then = now - (elapsed % fpsInterval);
         drawScene(elapsed);
     }
+}
+
+//RENDERING OGGETTI MIA LIBRERIA
+function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix){
+    let program = webglUtils.createProgramFromSources(gl, [ model.vertexShader, model.fragmentShader]);
+    let worldMatrices = model.getWorldMatrices(baseWorldMatrix);
+    worldMatrices.forEach((worldMatrix, count) => renderPart(gl, program, model, count, worldMatrix, viewProjectionMatrix));
+}
+
+function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionMatrix){
+    let worldInverseTranspose = m4.transpose(m4.inverse(worldMatrix));
+    let uniforms = {
+        u_world : worldMatrix,
+        u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
+        u_worldInverseTranspose : worldInverseTranspose,
+        u_color: model.partsColor[partNumber],
+    }
+
+    let arrays = {
+        position: { data: model.vertices, numComponents: 3},
+        //colors: { data: model.colors, numComponents: 3, },
+        indices: { data: model.indices, numComponents: 3,},
+    }
+    setUpElementFromArrays(gl, program, arrays, uniforms);
+    gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    arrays = {
+        position: { data: model.verticesWF, numComponents: 3},
+        //colors: { data: model.colorsWF, numComponents: 3},
+        indices: { data: model.indicesWF, numComponents: 2,},
+    }
+    uniforms.u_color= [0,0,0,1];
+    setUpElementFromArrays(gl, program, arrays, uniforms);
+    gl.drawElements(gl.LINES, model.indicesWF.length, gl.UNSIGNED_SHORT, 0); 
 }
