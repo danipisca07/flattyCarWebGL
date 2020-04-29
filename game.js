@@ -14,6 +14,9 @@ var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1,1,1]; 
 
+var gfxSettings = 'high';
+var ambientLight = 0.2; //Illuminazione di base (ambiente)
+var pointLightPosition = [0.0, 5.0, 0.0 ]; //Posizione punto luce
 
 var gl, program;
 var positionLocation, positionBuffer;
@@ -43,11 +46,11 @@ function drawScene(elapsed) {
 
     let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
     
-    renderElement(gl, floor, m4.identity(), viewProjectionMatrix);
+    renderElement(gl, floor, m4.identity(), viewProjectionMatrix, gfxSettings);
 
     let baseCarMatrix = m4.translation(0, 0.28,0);
     vCar.doStep(key);
-    renderElement(gl, vCar, baseCarMatrix, viewProjectionMatrix);
+    renderElement(gl, vCar, baseCarMatrix, viewProjectionMatrix, gfxSettings);
 }
 
 var key=[false,false,false,false]; //Vedi car.js per i codici tasti
