@@ -1,14 +1,5 @@
 "use strict";
 
-var nObjs = 20;
-var nPerRow = 5;
-var translation = [0,0.28,0];
-var rotation = [degToRad(0), degToRad(0), degToRad(0)];
-var scale = [1,1,1]; //1,1,1
-
-var offset = [2,2,0];
-var offsetAngle = [degToRad(0), degToRad(0), degToRad(0)];
-
 var cameraSettings = {
     cameraPosition : [0, 7, 7],
     //cameraRotation : [degToRad(0), degToRad(0), degToRad(0)],
@@ -19,7 +10,10 @@ var cameraSettings = {
 }
 var cameraTarget = [0,0,0];
 
-var lightPosition = [-100, -100, -400];
+var translation = [0,0,0];
+var rotation = [degToRad(0), degToRad(0), degToRad(0)];
+var scale = [1,1,1]; 
+
 
 var gl, program;
 var positionLocation, positionBuffer;
@@ -47,12 +41,13 @@ function drawScene(elapsed) {
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
-    let baseWorldMatrix = getManipulationMatrix(m4.identity(), scale, rotation, translation);
     let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
     
     renderElement(gl, floor, m4.identity(), viewProjectionMatrix);
+
+    let baseCarMatrix = m4.translation(0, 0.28,0);
     vCar.doStep(key);
-    renderElement(gl, vCar, baseWorldMatrix, viewProjectionMatrix);
+    renderElement(gl, vCar, baseCarMatrix, viewProjectionMatrix);
 }
 
 var key=[false,false,false,false]; //Vedi car.js per i codici tasti

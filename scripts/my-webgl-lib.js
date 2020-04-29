@@ -21,15 +21,31 @@ function multiplyVec3Scalar(v, scalar){
 }
 
 //FUNZIONI MATRICI
+//Funzione per ottere la matrice di manipolazione di un oggetto(anche composto da più parti) nello spazio, 
+// anche chiamata worldMatrix o modelMatrix, quindi applica le trasformazioni nell'ordine matrix*T*R*S
 function getManipulationMatrix(matrix, scale, rotation, translation){
-    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
-    matrix = m4.zRotate(matrix, rotation[2]);
-    matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
+    if(scale != undefined)
+    {
+        if(scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione scale != 3!!");
+        matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+    }
+    if(rotation != undefined)
+    {
+        if(scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione rotation != 3!!");
+        matrix = m4.xRotate(matrix, rotation[0]);
+        matrix = m4.yRotate(matrix, rotation[1]);
+        matrix = m4.zRotate(matrix, rotation[2]);
+    }
+    if(translation != undefined)
+    {
+        if(scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione translation != 3!!");
+        matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
+    }
     return matrix;
 }
 
+//Funzione per ottere la matrice di manipolazione di una parte di un oggetto rispetto alla worldMatrix dell' oggetto radice, 
+// solitamente chiamata LocalMatrix, quindi applica le trasformazioni nell'ordine matrix*S*R*T
 function getLocalMatrix(matrix, scale, rotation, translation){
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     matrix = m4.zRotate(matrix, rotation[2]);
@@ -39,6 +55,8 @@ function getLocalMatrix(matrix, scale, rotation, translation){
     return matrix;
 }
 
+//Restituisce la ViewProjectionMatrix per una telecamera prospettiva con obbiettivo lookAt
+// cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
 function getViewProjectionMatrixLookAt(gl, lookAtTarget, cameraSettings){
     if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -54,6 +72,8 @@ function getViewProjectionMatrixLookAt(gl, lookAtTarget, cameraSettings){
     return viewProjectionMatrix;
 }
 
+//Restituisce la ViewProjectionMatrix per una telecamera prospettiva
+// cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
 function getViewProjectionMatrix(gl, cameraSettings){
     if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -72,18 +92,6 @@ function getViewProjectionMatrix(gl, cameraSettings){
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
     return viewProjectionMatrix;
-}
-
-function setUpElementFromArrays(gl, program, arrays, uniforms){
-
-    gl.useProgram(program);
-    let uniformSetters = webglUtils.createUniformSetters(gl,program);
-    let attributeSetters = webglUtils.createAttributeSetters(gl,program);
-    let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
-    
-    webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
-
-    webglUtils.setUniforms(uniformSetters, uniforms);
 }
 
 // ANIMAZIONE
@@ -135,4 +143,14 @@ function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionM
     uniforms.u_color= [0,0,0,1];
     setUpElementFromArrays(gl, program, arrays, uniforms);
     gl.drawElements(gl.LINES, model.indicesWF.length, gl.UNSIGNED_SHORT, 0); 
+}
+
+function setUpElementFromArrays(gl, program, arrays, uniforms){
+    let uniformSetters = webglUtils.createUniformSetters(gl,program);
+    let attributeSetters = webglUtils.createAttributeSetters(gl,program);
+    let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+    
+    webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
+
+    webglUtils.setUniforms(uniformSetters, uniforms);
 }
