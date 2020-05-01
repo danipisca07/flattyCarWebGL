@@ -5,9 +5,16 @@ const keys = {
     D: 3, D_CODE: 68,
 }
 
-var vCar = {
-    //MESH arrays
-    vertices :[
+const PARTS = {
+    BODY: 0,
+    WHEEL_REAR_R: 1,
+    WHEEL_REAR_L: 2,
+    WHEEL_FRONT_R: 3,
+    WHEEL_FRONT_L: 4,
+}
+
+var baseCube = {
+    vertices : [
         -1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1, 
         -1,-1,1, 1,-1,1, 1,1,1, -1,1,1, 
         -1,-1,-1, -1,1,-1, -1,1,1, -1,-1,1,
@@ -27,31 +34,67 @@ var vCar = {
         2,1,0, 3,2,0, 4,5,6, 4,6,7, 10,9,8, 11,10,8, 12,13,14, 
         12,14,15, 18,17,16, 19,18,16, 20,21,22, 20,22,23 
     ],
-    normals : [
+    normals: [
         0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
         0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
         0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
         0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
         0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-        0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,  
+        0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 
     ],
-    partsColor : [
-        [1, 0, 0, 1],
-        [0, 1, 0, 1],
-        [0, 0, 1, 1],
-        [1, 1, 0, 1],
-        [0, 1, 1, 1],
-    ],
-    
     //WIREFRAME arrays
     verticesWF : [-1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1, -1,-1,1, 1,-1,1, 1,1,1, -1,1,1,],
-    colorsWF : [
-        0,0,0,  0,0,0,  0,0,0,  0,0,0,
-        0,0,0,  0,0,0,  0,0,0,  0,0,0
-    ],
     indicesWF : [0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 1,5, 2,6, 3,7, 0,4],
- 
-    shininess : 100,
+}
+
+var vCar = {
+    //MESH arrays
+    parts : [
+        {
+            type: PARTS.BODY,
+            vertices: baseCube.vertices,
+            indices: baseCube.indices,
+            normals: baseCube.normals,
+            color: [1, 0, 0, 1],
+            shininess : 100, 
+            verticesWF : baseCube.verticesWF,
+            indicesWF : baseCube.indicesWF,
+        },
+        {
+            type: PARTS.WHEEL_REAR_R,
+            vertices: baseCube.vertices,
+            indices: baseCube.indices,
+            normals: baseCube.normals,
+            color: [0, 1, 0, 1],
+            shininess : 100, 
+        },
+        {
+            type: PARTS.WHEEL_REAR_L,
+            vertices: baseCube.vertices,
+            indices: baseCube.indices,
+            normals: baseCube.normals,
+            color: [0, 0, 1, 1],
+            shininess : 100, 
+        },
+        {
+            type: PARTS.WHEEL_FRONT_R,
+            vertices: baseCube.vertices,
+            indices: baseCube.indices,
+            normals: baseCube.normals,
+            color: [1, 1, 0, 1],
+            shininess : 100, 
+        },
+        {
+            type: PARTS.WHEEL_FRONT_L,
+            vertices: baseCube.vertices,
+            indices: baseCube.indices,
+            normals: baseCube.normals,
+            color: [0, 1, 1, 1],
+            shininess : 100, 
+        },
+    ],
+    drawMode : 'elements',
+    
     
 
     //Funzione contenente la fisica del movimento della macchina. Richiamarla ogni volta che si deve aggiornare la sua posizione
@@ -106,16 +149,21 @@ var vCar = {
 
     //Restituisce le worldMatrix(=modelMatrix) di ognuna delle parti che compongono la macchina per poter
     // passare direttamente alla renderizzazione di ognuna
-    getWorldMatrices : function(baseMatrix){
+    getPartLocalMatrix : function(baseMatrix, partType){
         baseMatrix = getLocalMatrix(baseMatrix, [1,1,1], [0,degToRad(this.facing),0], [this.px, this.py, this.pz]);
-        return [
-            //baseMatrix*S*R*T
-            getLocalMatrix(baseMatrix, [0.25, 0.14, 1], [0,0,0], [0,0,0]), //Carlinga
-            getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [0.58,this.raggioRuotaP-0.28,0.8]), //Ruota posteriore D (verde)
-            getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-0.58,this.raggioRuotaP-0.28,0.8]), //Ruota posteriore S (blu)
-            getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [0.58,this.raggioRuotaA-0.28,-0.55]), //Ruota anteriore D (gialla)
-            getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-0.58,this.raggioRuotaA-0.28,-0.55]), //Ruota anteriore D (azzurra)
-        ];
+        //baseMatrix*S*R*T
+        if(partType === PARTS.BODY)
+            return getLocalMatrix(baseMatrix, [0.25, 0.14, 1], [0,0,0], [0,0,0]);
+        else if (partType === PARTS.WHEEL_REAR_R)
+            return getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [0.58,this.raggioRuotaP-0.28,0.8]);
+        else if (partType === PARTS.WHEEL_REAR_L)
+            return getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-0.58,this.raggioRuotaP-0.28,0.8]);
+        else if (partType === PARTS.WHEEL_FRONT_R)
+            return getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [0.58,this.raggioRuotaA-0.28,-0.55]);
+        else if (partType === PARTS.WHEEL_FRONT_L)
+            return getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-0.58,this.raggioRuotaA-0.28,-0.55]);
+        else
+            return baseMatrix;
     },
 
     //Stato iniziale

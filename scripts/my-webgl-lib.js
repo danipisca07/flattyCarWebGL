@@ -113,44 +113,52 @@ function animate() {
 
 //RENDERING OGGETTI MIA LIBRERIA
 function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix, gfxSettings){
-    gfxSettings = (gfxSettings === undefined || model.shaders[gfxSettings] === undefined) ? 'low' : gfxSettings;
-    let shaders = model.shaders[gfxSettings];
+    let shaders = shaderScripts[gfxSettings];
+    if(shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
     let program = webglUtils.createProgramFromSources(gl, [ shaders.vertexShader, shaders.fragmentShader]);
     gl.useProgram(program);
-    let worldMatrices = model.getWorldMatrices(baseWorldMatrix);
-    worldMatrices.forEach((worldMatrix, count) => renderPart(gl, program, model, count, worldMatrix, viewProjectionMatrix, gfxSettings));
+    for(let i=0; i<model.parts.length; i++){
+        let partManipulationMatrix = model.getPartLocalMatrix(baseWorldMatrix, model.parts[i].type);
+        renderPart(gl, program, model, i, partManipulationMatrix, viewProjectionMatrix, gfxSettings);
+    }
 }
 
 function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionMatrix, gfxSettings){
     let uniforms = {
         u_world : worldMatrix,
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
-        u_color: model.partsColor[partNumber],
+        u_color: model.parts[partNumber].color,
     }
-    let arrays = {
-        position: { data: model.vertices, numComponents: 3},
+    let arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
         //colors: { data: model.colors, numComponents: 3, },
-        indices: { data: model.indices, numComponents: 3,},
+
+    if(model.drawMode === 'elements'){
+        arrays.indices= { data: model.parts[partNumber].indices, numComponents: 3,};
     }
+        
     if(gfxSettings === 'high'){
         uniforms.u_ambient = ambientLight;
         uniforms.u_pointLightPosition = pointLightPosition;
         uniforms.u_cameraPosition = cameraSettings.cameraPosition;
-        uniforms.u_shininess = model.shininess !== 'undefined' ? model.shininess : 100;
-        arrays.normal = { data: model.normals, numComponents: 3};
+        uniforms.u_shininess = model.parts[partNumber].shininess;
+        arrays.normal = { data: model.parts[partNumber].normals, numComponents: 3};
     }
     setUpElementFromArrays(gl, program, arrays, uniforms);
-    gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
-
-    if(gfxSettings === 'low'){
+    if(model.drawMode === 'arrays'){
+        gl.drawArrays(gl.TRIANGLES, 0, model.parts[partNumber].vertices.length/3);
+    }else if(model.drawMode === 'elements'){
+        gl.drawElements(gl.TRIANGLES, model.parts[partNumber].indices.length, gl.UNSIGNED_SHORT, 0);
+    }
+    
+    //WIREFRAME 
+    if(gfxSettings === 'low' && model.parts[partNumber].indicesWF !== undefined){
         arrays = {
-            position: { data: model.verticesWF, numComponents: 3},
-            //colors: { data: model.colorsWF, numComponents: 3},
-            indices: { data: model.indicesWF, numComponents: 2,},
+            position: { data: model.parts[partNumber].verticesWF, numComponents: 3},
+            indices: { data: model.parts[partNumber].indicesWF, numComponents: 2,},
         }
         uniforms.u_color= [0,0,0,1];
         setUpElementFromArrays(gl, program, arrays, uniforms);
-        gl.drawElements(gl.LINES, model.indicesWF.length, gl.UNSIGNED_SHORT, 0); 
+        gl.drawElements(gl.LINES, model.parts[partNumber].indicesWF.length, gl.UNSIGNED_SHORT, 0); 
     }
     
 }
