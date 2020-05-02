@@ -1,14 +1,13 @@
 "use strict";
 
 var cameraSettings = { 
-    cameraPosition : [0, 7, 7],
-    //cameraRotation : [degToRad(0), degToRad(0), degToRad(0)],
+    cameraPosition : [0, 0, 0],
+    cameraRotation : [0, 0, 0],
     lookUpVector : [0, 1, 0],
     fieldOfViewRadians : degToRad(48),
-    zNear : 1,
+    zNear : 0.1,
     zFar : 2000,
 }
-var cameraTarget = [vCar.px, vCar.py, vCar.pz];
 
 var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
@@ -38,7 +37,22 @@ function drawScene(elapsed) {
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
-    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl, cameraTarget);
+    /* CAMERA AEREA */
+    /* cameraSettings.lookAtTarget = [vCar.px, vCar.py, vCar.pz], //Obbiettivo a cui la camera deve puntare
+    cameraSettings.cameraPosition = [vCar.px, vCar.py+7, vCar.pz+7]; //Posizione della camera
+    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl); */
+
+    /* Visuale prima persona */
+    /* cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (stessa della macchina)
+    cameraSettings.cameraPosition = [vCar.px, vCar.py+1, vCar.pz]; //Posizione della camera (appena sopra la macchina)
+    let viewProjectionMatrix = getViewProjectionMatrix(gl); */
+
+    /* Visuale terza persona */
+    //Obbiettivo a cui la camera deve puntare (appena sopra la macchina per puntare dove la macchina sta andando)
+    cameraSettings.lookAtTarget = [vCar.px, vCar.py+1, vCar.pz];
+    cameraSettings.cameraOffset = [0, 1, 3]; //Posizione della camera relativa all'oggetto che sta seguendo
+    cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (la stessa della macchina)
+    let viewProjectionMatrix = getViewProjectionMatrixFollow(gl);
     
     renderElement(gl, floor, m4.identity(), viewProjectionMatrix, gfxSettings);
 
@@ -163,7 +177,7 @@ function loadCar(setting){
     loadMesh('./assets/camaro_wheel_'+setting+'.obj').then( (data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = [0.1, 0.1, 0.1, 1];
-        wheel.shininess = 100;
+        wheel.shininess = 1000;
         for(let i = 1; i<5; i++){
             vCar.parts[i] = {...wheel};
         }

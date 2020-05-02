@@ -55,30 +55,32 @@ function getLocalMatrix(matrix, scale, rotation, translation){
     return matrix;
 }
 
-//Restituisce la ViewProjectionMatrix per una telecamera prospettiva con obbiettivo lookAt
-// cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
-function getViewProjectionMatrixLookAt(gl, lookAtTarget, cameraSettings){
-    if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
+function getProjectionMatrix(gl, cameraSettings){
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     var projectionMatrix = m4.perspective(cameraSettings.fieldOfViewRadians, aspect, 
         cameraSettings.zNear, cameraSettings.zFar);
+    return projectionMatrix;
+}
 
-    var cameraMatrix = m4.lookAt(cameraSettings.cameraPosition, lookAtTarget, cameraSettings.lookUpVector);
+//Restituisce la ViewProjectionMatrix per una telecamera prospettiva con obbiettivo lookAt
+// cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
+function getViewProjectionMatrixLookAt(gl, cameraSettings){
+    if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
+    var projectionMatrix = getProjectionMatrix(gl,cameraSettings);
 
+    var cameraMatrix = m4.lookAt(cameraSettings.cameraPosition, cameraSettings.lookAtTarget, cameraSettings.lookUpVector);
     var viewMatrix = m4.inverse(cameraMatrix);
-
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
     return viewProjectionMatrix;
 }
 
-//Restituisce la ViewProjectionMatrix per una telecamera prospettiva
+//Restituisce la ViewProjectionMatrix per una telecamera prospettiva con posizione e rotazione
+// definite da cameraPosition e cameraRotation
 // cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
 function getViewProjectionMatrix(gl, cameraSettings){
     if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
-    var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix = m4.perspective(cameraSettings.fieldOfViewRadians, aspect, 
-        cameraSettings.zNear, cameraSettings.zFar);
+    var projectionMatrix = getProjectionMatrix(gl,cameraSettings);
     
     var cameraMatrix = m4.identity();
     cameraMatrix= m4.translate(cameraMatrix, 
@@ -86,9 +88,35 @@ function getViewProjectionMatrix(gl, cameraSettings){
     cameraMatrix = m4.xRotate(cameraMatrix, cameraSettings.cameraRotation[0]);
     cameraMatrix = m4.yRotate(cameraMatrix, cameraSettings.cameraRotation[1]);
     cameraMatrix = m4.zRotate(cameraMatrix, cameraSettings.cameraRotation[2]);
-
+    
     var viewMatrix = m4.inverse(cameraMatrix);
+    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
+    return viewProjectionMatrix;
+}
+
+//Restituisce la ViewProjectionMatrix per una telecamera prospettiva che segue l'obbiettivo lookAtTarget
+// da un distanza definita da cameraOffset e un angolazione relativa definita da cameraRotation
+// cameraSettings: impostazioni camera, se undefined utilizza quelle predefinite
+function getViewProjectionMatrixFollow(gl, cameraSettings){
+    if(cameraSettings == undefined) cameraSettings = this.cameraSettings;
+    var projectionMatrix = getProjectionMatrix(gl,cameraSettings);
+
+    var cameraMatrix = m4.identity();
+    cameraMatrix= m4.translate(cameraMatrix, 
+        cameraSettings.lookAtTarget[0],cameraSettings.lookAtTarget[1],cameraSettings.lookAtTarget[2]);
+    if(cameraSettings.cameraRotation != undefined){
+        cameraMatrix = m4.xRotate(cameraMatrix, cameraSettings.cameraRotation[0]);
+        cameraMatrix = m4.yRotate(cameraMatrix, cameraSettings.cameraRotation[1]);
+        cameraMatrix = m4.zRotate(cameraMatrix, cameraSettings.cameraRotation[2]);
+    }
+    cameraMatrix= m4.translate(cameraMatrix, 
+        cameraSettings.cameraOffset[0],cameraSettings.cameraOffset[1],cameraSettings.cameraOffset[2]);
+
+    cameraSettings.cameraPosition = [cameraMatrix[12],cameraMatrix[13], cameraMatrix[14]];
+    var cameraMatrix = m4.lookAt(cameraSettings.cameraPosition, cameraSettings.lookAtTarget, cameraSettings.lookUpVector);
+    
+    var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
     return viewProjectionMatrix;

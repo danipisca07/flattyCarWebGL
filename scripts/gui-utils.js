@@ -7,9 +7,9 @@ function setupUI(){
     webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
     webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
     webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
-    webglLessonsUI.setupSlider("#cameraX", {value: cameraSettings.cameraPosition[0], slide: updateCameraPosition(0), min: -10, max: 10});
+    /* webglLessonsUI.setupSlider("#cameraX", {value: cameraSettings.cameraPosition[0], slide: updateCameraPosition(0), min: -10, max: 10});
     webglLessonsUI.setupSlider("#cameraY", {value: cameraSettings.cameraPosition[1], slide: updateCameraPosition(1), min: -10, max: 10});
-    webglLessonsUI.setupSlider("#cameraZ", {value: cameraSettings.cameraPosition[2], slide: updateCameraPosition(2), min: -10, max: 10});
+    webglLessonsUI.setupSlider("#cameraZ", {value: cameraSettings.cameraPosition[2], slide: updateCameraPosition(2), min: -10, max: 10}); */
     /* webglLessonsUI.setupSlider("#cameraAngleX", {value: radToDeg(cameraSettings.cameraRotation[0]), slide: updateCameraRotation(0), max: 360});
     webglLessonsUI.setupSlider("#cameraAngleY", {value: radToDeg(cameraSettings.cameraRotation[1]), slide: updateCameraRotation(1), max: 360});
     webglLessonsUI.setupSlider("#cameraAngleZ", {value: radToDeg(cameraSettings.cameraRotation[2]), slide: updateCameraRotation(2), max: 360});
