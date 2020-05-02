@@ -181,14 +181,13 @@ var vCar = {
     mozzoP: 0, mozzoA: 0, sterzo:0,   // Rotazione ruote
     vx: 0, vy: 0, vz: 0, //Velocità
 
-    //Settings
+    //Settings fisici
     velSterzo : 3.4,
     velRitornoSterzo : 0.93,
     accMax : 0.0151,
     attritoZ : 0.991,
     attritoX :  0.8, 
     attritoY : 1.0,
-    
     grip : 0.75,
 
     //Model Settings
@@ -197,8 +196,8 @@ var vCar = {
     raggioRuotaP : 0.3, //Scala dimensione raggio ruote posteriori
     spallaRuota : 0.3, //Scala dimensione spalla ruota
     larghezzaAsse : 1/2, //Larghezza asse ruote macchina (diviso / 2)
-    posizioneAsseP : 0.75,
-    posizioneAsseA : 1,
+    posizioneAsseP : 0.75, //Posizione (offset sull'asse z) delle ruote posteriori
+    posizioneAsseA : 1, //Posizione (offset sull'asse z) delle ruote anteriori
 }
 
 

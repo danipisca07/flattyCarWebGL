@@ -24,19 +24,17 @@ var colorLocation, colorBuffer;
 var uniformSetters, attributeSetters, bufferInfo; 
 var attribs, staticUniforms, computedUniforms;
 
-function main() {
-    // Get A WebGL context
+function init() {
     /** @type {HTMLCanvasElement} */
     var canvas = document.querySelector("#canvas");
     gl = canvas.getContext("webgl");
-    if (!gl) { return; }
+    if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
 
     setupUI();
-    //drawScene();
     
 }
 
-// Draw the scene.
+// Metodo di rendering
 function drawScene(elapsed) {
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -91,37 +89,45 @@ function doKeyUp(e){
 
 //Caricamento .obj
 function loadObj(content){
-    let newPart = new Object();
+    let newPart = new Object(); //La parte che rappresenta l'oggetto letto dal file .obj
     let vertices = new Array();
-    let indices = new Array();
     let normals = new Array();
+    //let indices = new Array();
     let mesh = new Object();
     //let mesh = new subd_mesh();
     mesh = ReadOBJ(content, mesh);
     newPart.vertices = new Array();
     newPart.normals = new Array();
-    //obj.indices = indices;
-    for (var i=0; i<mesh.nvert; i++)
+    //newPart.indices = indices;
+
+    //Creo un array ordinato contenente tutte le triplette dei vertici del file .obj
+    for (var i=0; i<mesh.nvert; i++) 
     {
         vertices.push([mesh.vert[i+1].x, mesh.vert[i+1].y, mesh.vert[i+1].z]);
     }
+    //Creo un array ordinato contenente tutte le triplette delle normali del file .obj
     for (var i=0; i/3<mesh.normals.length; i=i+3)
     {
         normals.push([mesh.normals[i], mesh.normals[i+1], mesh.normals[i+2]]);
     }
+    //Ciclo su ogni faccia e compongo gli array vertices e normals in base all'ordine delle facce
     for(let i=0; i<mesh.nface; i++){ //Per ogni faccia
         let face = mesh.face[i+1];
-        let nIndices = 0;
-        while(face.vert[nIndices]>0) nIndices++; //Controllo quanti vertici ha la faccia
-        
-        for(let j=0; j<nIndices-2; j++){ //Per ogni "tripletta" di vertici della faccia (TRIANGLE_FAN)
+        let nIndices = 0; //Numero di indici nella faccia
+        while(face.vert[nIndices]>0) nIndices++;
+        //Nei file OBJ le facce vengono indicate tramite la specifica TRIANGLE_FAN quindi ciclo con
+        // una finestra scorrevole di dimensione 3. In questo modo mantengo la compatibilità anche
+        // con file OBJ che specificato facce non triangolari
+        for(let j=0; j<nIndices-2; j++){
             /* indices.push(face[0]-1);
             indices.push(face[j+1]-1);
             indices.push(face[j+2]-1); */
             try {
+                //Aggiungo i vertici della faccia
                 newPart.vertices.push(...vertices[face.vert[0]-1]);
                 newPart.vertices.push(...vertices[face.vert[j+1]-1]);
                 newPart.vertices.push(...vertices[face.vert[j+2]-1]);
+                //Aggiungo le normali della faccia
                 newPart.normals.push(...normals[face.norm[0]-1]);
                 newPart.normals.push(...normals[face.norm[j+1]-1]);
                 newPart.normals.push(...normals[face.norm[j+2]-1]);
@@ -147,6 +153,7 @@ function loadObj(content){
     return newPart;
 }
 
+//Caricamento asincrono di una mesh da file obj. Restituisce una promise 
 function loadMesh(filename) {
     return $.ajax({
         url: filename,
@@ -156,20 +163,22 @@ function loadMesh(filename) {
     });
 }
 
+//Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCarLow(){
     loadMesh('./assets/camaro_body_low.obj').then( (data) => {
-        let body = loadObj(data);
-        body.type = CAR_PARTS.BODY;
+        let body = loadObj(data); //Carica vertices e normal da file OBJ
+        body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = [0.1, 0.8, 0.1, 1];
         body.shininess = 100;
         vCar.parts[0] = body;
-        vCar.drawMode = 'arrays';
-        vCar.loaded = true;
+        vCar.drawMode = 'arrays'; 
+        //Avvia la renderizzazione della scena
+        vCar.loaded = true; 
         startAnimating(60, drawScene);
-        loadCarHigh();
+        loadCarHigh();//Avvia il caricamento dei modelli di più alta definizione
     });
     loadMesh('./assets/camaro_wheel_low.obj').then( (data) => {
-        let wheel = loadObj(data);
+        let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = [0.1, 0.1, 0.1, 1];
         wheel.shininess = 100;
         for(let i = 1; i<5; i++){
@@ -182,6 +191,7 @@ function loadCarLow(){
     });
 }
 
+//Effettua il caricamento dai file .obj dei modelli della macchina a definizione alta
 function loadCarHigh(){
     loadMesh('./assets/camaro_body_high.obj').then( (data) => {
         let body = loadObj(data);
@@ -197,6 +207,7 @@ function loadCarHigh(){
     });
 }
 
+
 $(document).ready(function() {
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_Low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
@@ -205,5 +216,5 @@ $(document).ready(function() {
     //loadCarHigh();
 });
 
-main();
+init();
 

@@ -1,0 +1,130 @@
+<html>
+    <head>
+        <style>
+            body{
+                text-align: left;
+            }
+            p{
+
+            }
+            pre{
+                background: #f4f4f4;
+                border: 1px solid #ddd;
+                border-left: 3px solid #f36d33;
+                color: #666;
+                page-break-inside: avoid;
+                font-family: monospace;
+                font-size: 15px;
+                line-height: 1.6;
+                margin-bottom: 1.6em;
+                margin-left: 30px;
+                max-width: 90%;
+                overflow: auto;
+                padding: 1em 1.5em;
+                display: block;
+                word-wrap: break-word;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Documentazione progetto WebGL</h1>
+        <div id="scripts">
+            <h3>Elenco scripts</h3>
+            <p>
+                Per lo sviluppo del progetto sono state utilizzate alcune librerie: (inserite nella cartella scripts)
+                <ul>
+                    <li><i>webgl-utils.js:</i>Funzioni di utility boilerplate per webGL (credit: <a href="http://www.webglfundamentals.com">WebGLFundamentals</a>)</li>
+                    <li><i>m4s.js:</i>Funzioni di utility per gestione matrici (credit: <a href="http://www.webglfundamentals.com">WebGLFundamentals</a>)</li>
+                    <li><i>glm_light/subdiv/mesh_utils/jquery.js:</i>Per lettura e caricamento file .obj</li>
+                    <li>...</li>
+                </ul>
+                Inoltre data la complessità del progetto, il codice sorgente è stato diviso in più file:
+                <ul>
+                    <li><i>shaders.js:</i>Contenente gli shaders scripts WebGL</li>
+                    <li><i>my-webgl-lib.js:</i>Libreria personale dove sono state raggruppate tutte le funzioni non strettamente collegate alla logica
+                         specifica dell'applicazione</li>
+                    <li><i>car.js:</i>Oggetto e funzioni di fisica dell' oggetto macchina</li>
+                    <li><i>game.js:</i>Contenente tutta la logica applicativa</li>
+                    <li><i>game.html</i></li>
+                </ul>
+            </p>
+        </div>
+        <div id="organizzazioneOggetti">
+            <h3>
+                Organizzazione oggetti
+            </h3>
+            <p>Al fine di organizzare la scena, si è scelto di utilizzare uno schema ben definito per ogni oggetto che dovrà essere renderizzato.</p>
+            <pre>
+var oggetto = {
+    parts : [  //Array contenente tutte le parti(componenti) dell' oggetto
+        {
+            type:               //Tipo dell'oggetto (es. Carrozzeria, RuotaAnterioreSX ecc...)
+            vertices:           //Array contenente i vertici delle facce
+            normals:            //Array contenente le normali delli corrispondenti vertici
+            color:              //Colore della parte
+            shininess:          //Componente per la luce speculare (lucidità) dell'oggetto
+        },
+        <i>altre parti ...</i>
+    ],
+
+    //Data una matrice di manipolazione globale fornisce la matrice di manipolazione locale per il tipo di oggetto specificato nel secondo parametro
+    getPartLocalMatrix : function(manipolazioneGlobale, tipoParte) {
+        <i>return mat4</i>
+    }
+}
+            </pre>
+        </div>
+        <div id="rendering">
+            <h3>Processo di rendering</h3>
+            <p>
+                In base all'organizzazione degli oggetti in base a quanto specificato sopra, viene utilizzato un meccanismo automatizzato definito nella libreria
+                <i>my-webgl-lib.js</i> che si occupa di:
+                <ul>
+                    <li>Caricare gli shader</li>
+                    <li>Calcolare le matrici di manipolazione locali di ogni oggetto</li>
+                    <li>Caricare e impostate buffer per atrtibutes e uniforms webGL</li>
+                    <li>Effettuare il rendering secondo il metodo corretto (<i>drawElements/drawArrays</i>)</li>
+                </ul>
+                Sequenza di chiamate in pseudocodice:
+                <pre>
+renderElement{
+    foreach part:
+        renderPart:
+            setUpElementFromArrays:
+                //Setup buffers
+            gl.drawElements / gl.drawArrays
+}
+                </pre>
+                Per più dettagli vedere la funzione <i>renderElement</i>
+            </p>
+        </div>
+        <div id="caricamentoObj">
+            <h3>Caricamento file .obj</h3>
+            <p>
+                Per il caricamento dei file in formato .obj è stata utilizzata la libreria glm_light,
+                ad ogni modo la libreria fornita trasformava e scomponeva le facce nei singoli spigoli. Dato che per il rendering
+                del progetto era più conveniente importare la mesh sotto forma di facce triangolari (in modo da poterla 
+                renderizzare utilizzando la primitiva drawArrays di WebGL).<br/>
+                Quindi nel metodo loadObj una volta letto il file obj con ReadOBJ (della libreria glm_light) si procede a creare:
+                <ul>
+                    <li>Array vertices contenente la lista dei vertici nell'ordine definito dalle facce</li>
+                    <li>Array normals contenente la lista delle normali nell'ordine definito dalle facce</li>
+                </ul>
+                Per poter ottenere le normali è stata apportata una piccola modifica alla libreria glm_light nel metodo SecondPass
+                restituento l'array contenente le normali come proprietà dell'oggetto mesh:
+                <pre>mesh.normals = model.normals;</pre> 
+                Per quanto riguarda l'ordinamento dei vertici ci si è basati sul meccanismo di definizione delle faccie nei file
+                .obj che segue la specifica TRIANGLE_FAN (<a href="https://en.wikipedia.org/wiki/Triangle_fan">TRIANGLE_FAN</a>)
+                secondo cui una faccia composta di più elementi viene scomposta in facce triangolari:
+                <pre>
+f 1 2 3 4 --> (1 2 3) (1 3 4)
+f 8 7 6 5 --> (8 7 6) (8 6 5)
+f 4 3 7 8 --> (4 3 7) (4 7 8)
+f 5 1 4 8 --> (5 1 4) (5 4 8)
+f 5 6 2 1 --> (5 6 2) (5 2 1)
+f 2 6 7 3 --> (2 6 7) (2 7 3) </pre>
+                
+            </p>
+        </div>
+    </body>
+</html>
