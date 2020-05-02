@@ -86,8 +86,6 @@ function doKeyUp(e){
 //Caricamento .obj
 function loadObj(content){
     let newPart = new Object(); //La parte che rappresenta l'oggetto letto dal file .obj
-    let vertices = new Array();
-    let normals = new Array();
     //let indices = new Array();
     let mesh = new Object();
     //let mesh = new subd_mesh();
@@ -96,16 +94,6 @@ function loadObj(content){
     newPart.normals = new Array();
     //newPart.indices = indices;
 
-    //Creo un array ordinato contenente tutte le triplette dei vertici del file .obj
-    for (var i=0; i<mesh.nvert; i++) 
-    {
-        vertices.push([mesh.vert[i+1].x, mesh.vert[i+1].y, mesh.vert[i+1].z]);
-    }
-    //Creo un array ordinato contenente tutte le triplette delle normali del file .obj
-    for (var i=0; i/3<mesh.normals.length; i=i+3)
-    {
-        normals.push([mesh.normals[i], mesh.normals[i+1], mesh.normals[i+2]]);
-    }
     //Ciclo su ogni faccia e compongo gli array vertices e normals in base all'ordine delle facce
     for(let i=0; i<mesh.nface; i++){ //Per ogni faccia
         let face = mesh.face[i+1];
@@ -120,21 +108,19 @@ function loadObj(content){
             indices.push(face[j+2]-1); */
             try {
                 //Aggiungo i vertici della faccia
-                newPart.vertices.push(...vertices[face.vert[0]-1]);
-                newPart.vertices.push(...vertices[face.vert[j+1]-1]);
-                newPart.vertices.push(...vertices[face.vert[j+2]-1]);
+                newPart.vertices.push(mesh.vert[face.vert[0]].x,mesh.vert[face.vert[0]].y,mesh.vert[face.vert[0]].z);
+                newPart.vertices.push(mesh.vert[face.vert[j+1]].x,mesh.vert[face.vert[j+1]].y,mesh.vert[face.vert[j+1]].z);
+                newPart.vertices.push(mesh.vert[face.vert[j+2]].x,mesh.vert[face.vert[j+2]].y,mesh.vert[face.vert[j+2]].z);
                 //Aggiungo le normali della faccia
-                newPart.normals.push(...normals[face.norm[0]-1]);
-                newPart.normals.push(...normals[face.norm[j+1]-1]);
-                newPart.normals.push(...normals[face.norm[j+2]-1]);
+                newPart.normals.push(mesh.normals[(face.norm[0]-1)*3], mesh.normals[(face.norm[0]-1)*3+1], mesh.normals[(face.norm[0]-1)*3+2]);
+                newPart.normals.push(mesh.normals[(face.norm[j+1]-1)*3], mesh.normals[(face.norm[j+1]-1)*3+1], mesh.normals[(face.norm[j+1]-1)*3+2]);
+                newPart.normals.push(mesh.normals[(face.norm[j+2]-1)*3], mesh.normals[(face.norm[j+2]-1)*3+1], mesh.normals[(face.norm[j+2]-1)*3+2]);
             }
             catch(e){
                 console.log(e);
             }
-            
-
         }
-        //indices = new Array();for(let j=0; j<nIndices; j++) indices.push(face[j]-1); //TRIANGLE_FAN??
+        //indices = new Array();for(let j=0; j<nIndices; j++) indices.push(face[j]-1); //ordine TRIANGLE_FAN
     }
     
     /* var indicesWF = new Array();
@@ -144,8 +130,6 @@ function loadObj(content){
         indicesWF.push(mesh.edge[i+1].vert[0]-1);
         indicesWF.push(mesh.edge[i+1].vert[1]-1);
     } */
-    
-
     return newPart;
 }
 
@@ -190,35 +174,12 @@ function loadCar(setting){
     });
 }
 
-//Effettua il caricamento dai file .obj dei modelli della macchina a definizione alta
-function loadCarHigh(){
-    loadMesh('./assets/camaro_body_high.obj').then( (data) => {
-        let body = loadObj(data);
-        vCar.parts[0].vertices = body.vertices;
-        vCar.parts[0].normals = body.normals;
-
-        if(!vCar.loaded){
-            //Avvia la renderizzazione della scena
-            vCar.loaded = true; 
-            startAnimating(60, drawScene);
-            //loadCarHigh();//Avvia il caricamento dei modelli di più alta definizione
-        }
-    });
-    loadMesh('./assets/camaro_wheel_high.obj').then( (data) => {
-        let wheel = loadObj(data);
-        for(let i = 1; i<5; i++){
-            vCar.parts[i].vertices = wheel.vertices;
-            vCar.parts[i].normals = wheel.normals;
-        }
-    });
-}
-
 
 $(document).ready(function() {
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_Low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
 
-    loadCar('high');
+    loadCar('low');
     //loadCarHigh();
 });
 

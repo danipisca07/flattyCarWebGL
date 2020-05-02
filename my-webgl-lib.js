@@ -95,19 +95,21 @@ function getViewProjectionMatrix(gl, cameraSettings){
 }
 
 // ANIMAZIONE
-var fps, fpsInterval, now, then, elapsed;
+var fpsInterval, now, then, elapsed;
+let renderFunction;
 function startAnimating(fps, renderFunction){
-    fpsInterval = 1000 / fps;
+    this.renderFunction = renderFunction; //Imposta la funzione da richiamare per ogni rendering (definita in game.js)
+    fpsInterval = 1000 / fps; //Imposta un intervallo di tempo minimo per gli fps (fps limiter)
     then = Date.now();
     animate();
 }
 function animate() {
     requestAnimationFrame(animate);
     now = Date.now();
-    elapsed = now - then;
-    if (elapsed > fpsInterval) {
-        then = now - (elapsed % fpsInterval);
-        drawScene(elapsed);
+    elapsed = now - then; //Calcola il tempo passato dall'ultimo frame
+    if (elapsed > fpsInterval) { //Nuovo frame solo se è passato abbastanza tempo dall'ultimo frame (fps limiter)
+        then = now - (elapsed % fpsInterval); //Aggiorna il tempo dell'ultimo frame
+        this.renderFunction(elapsed); //Render nuovo frame
     }
 }
 
