@@ -1,6 +1,6 @@
 "use strict";
 
-var cameraSettings = {
+var cameraSettings = { 
     cameraPosition : [0, 7, 7],
     //cameraRotation : [degToRad(0), degToRad(0), degToRad(0)],
     lookUpVector : [0, 1, 0],
@@ -8,7 +8,7 @@ var cameraSettings = {
     zNear : 1,
     zFar : 2000,
 }
-var cameraTarget = [0,0,0];
+var cameraTarget = [vCar.px, vCar.py, vCar.pz];
 
 var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
@@ -88,6 +88,105 @@ function doKeyUp(e){
             break;
     }
 }
+
+//Caricamento .obj
+function loadObj(content){
+    let newPart = new Object();
+    let vertices = new Array();
+    let indices = new Array();
+    let normals = new Array();
+    let mesh = new Object();
+    //let mesh = new subd_mesh();
+    mesh = ReadOBJ(content, mesh);
+    newPart.vertices = new Array();
+    newPart.normals = new Array();
+    //obj.indices = indices;
+    for (var i=0; i<mesh.nvert; i++)
+    {
+        vertices.push([mesh.vert[i+1].x, mesh.vert[i+1].y, mesh.vert[i+1].z]);
+    }
+    for (var i=0; i/3<mesh.normals.length; i=i+3)
+    {
+        normals.push([mesh.normals[i], mesh.normals[i+1], mesh.normals[i+2]]);
+    }
+    for(let i=0; i<mesh.nface; i++){ //Per ogni faccia
+        let face = mesh.face[i+1];
+        let nIndices = 0;
+        while(face.vert[nIndices]>0) nIndices++; //Controllo quanti vertici ha la faccia
+        
+        for(let j=0; j<nIndices-2; j++){ //Per ogni "tripletta" di vertici della faccia (TRIANGLE_FAN)
+            /* indices.push(face[0]-1);
+            indices.push(face[j+1]-1);
+            indices.push(face[j+2]-1); */
+            try {
+                newPart.vertices.push(...vertices[face.vert[0]-1]);
+                newPart.vertices.push(...vertices[face.vert[j+1]-1]);
+                newPart.vertices.push(...vertices[face.vert[j+2]-1]);
+                newPart.normals.push(...normals[face.norm[0]-1]);
+                newPart.normals.push(...normals[face.norm[j+1]-1]);
+                newPart.normals.push(...normals[face.norm[j+2]-1]);
+            }
+            catch(e){
+                console.log(e);
+            }
+            
+
+        }
+        //indices = new Array();for(let j=0; j<nIndices; j++) indices.push(face[j]-1); //TRIANGLE_FAN??
+    }
+    
+    /* var indicesWF = new Array();
+    mesh=LoadSubdivMesh(mesh);
+    for (var i=0; i<mesh.nedge; i++)
+    {
+        indicesWF.push(mesh.edge[i+1].vert[0]-1);
+        indicesWF.push(mesh.edge[i+1].vert[1]-1);
+    } */
+    
+
+    return newPart;
+}
+
+function loadMesh(filename, targetElement, partNumber, partType) {
+    $.ajax({
+        url: filename,
+        dataType: 'text'
+    }).done(function(data) {
+        let newPart = loadObj(data);
+        newPart.type = partType;
+        newPart.color = [0.1, 0.8, 0.1, 1];
+        newPart.shininess = 100;
+        targetElement.parts[partNumber] = newPart;
+        targetElement.drawMode = 'arrays';
+        targetElement.loaded = true;
+    }).fail(function() {
+        alert('File [' + filename + "] non trovato!");
+    });
+}
+
+function loadCarLow(){
+    loadMesh('./assets/camaro_body_low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
+    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_REAR_R, CAR_PARTS.WHEEL_REAR_R);
+    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_REAR_L, CAR_PARTS.WHEEL_REAR_L);
+    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_FRONT_R, CAR_PARTS.WHEEL_FRONT_R);
+    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_FRONT_L, CAR_PARTS.WHEEL_FRONT_L);
+}
+
+function loadCarHigh(){
+    loadMesh('./assets/camaro_body_high.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
+    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_REAR_R, CAR_PARTS.WHEEL_REAR_R);
+    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_REAR_L, CAR_PARTS.WHEEL_REAR_L);
+    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_FRONT_R, CAR_PARTS.WHEEL_FRONT_R);
+    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_FRONT_L, CAR_PARTS.WHEEL_FRONT_L);
+}
+
+$(document).ready(function() {
+    //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_Low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
+    //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
+
+    loadCarLow();
+    loadCarHigh();
+});
 
 main();
 

@@ -130,7 +130,6 @@ function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionM
         u_color: model.parts[partNumber].color,
     }
     let arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
-        //colors: { data: model.colors, numComponents: 3, },
 
     if(model.drawMode === 'elements'){
         arrays.indices= { data: model.parts[partNumber].indices, numComponents: 3,};

@@ -5,7 +5,7 @@ const keys = {
     D: 3, D_CODE: 68,
 }
 
-const PARTS = {
+const CAR_PARTS = {
     BODY: 0,
     WHEEL_REAR_R: 1,
     WHEEL_REAR_L: 2,
@@ -45,13 +45,22 @@ var baseCube = {
     //WIREFRAME arrays
     verticesWF : [-1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1, -1,-1,1, 1,-1,1, 1,1,1, -1,1,1,],
     indicesWF : [0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 1,5, 2,6, 3,7, 0,4],
+
+    //Model Settings
+    carlingaScale: [0.25, 0.14, 1], //Scala dimensione modello carrozzeria macchina
+    raggioRuotaA : 0.25, //Scala dimensione raggio ruote anteriori
+    raggioRuotaP : 0.3, //Scala dimensione raggio ruote posteriori
+    spallaRuota : 0.1, //Scala dimensione spalla ruota
+    larghezzaAsse : 1.16/2, //Larghezza asse ruote macchina (diviso / 2)
+    posizioneAsseP : 0.8,
+    posizioneAsseA : 0.55,
 }
 
 var vCar = {
     //MESH arrays
     parts : [
         {
-            type: PARTS.BODY,
+            type: CAR_PARTS.BODY,
             vertices: baseCube.vertices,
             indices: baseCube.indices,
             normals: baseCube.normals,
@@ -61,7 +70,7 @@ var vCar = {
             indicesWF : baseCube.indicesWF,
         },
         {
-            type: PARTS.WHEEL_REAR_R,
+            type: CAR_PARTS.WHEEL_REAR_R,
             vertices: baseCube.vertices,
             indices: baseCube.indices,
             normals: baseCube.normals,
@@ -69,7 +78,7 @@ var vCar = {
             shininess : 100, 
         },
         {
-            type: PARTS.WHEEL_REAR_L,
+            type: CAR_PARTS.WHEEL_REAR_L,
             vertices: baseCube.vertices,
             indices: baseCube.indices,
             normals: baseCube.normals,
@@ -77,7 +86,7 @@ var vCar = {
             shininess : 100, 
         },
         {
-            type: PARTS.WHEEL_FRONT_R,
+            type: CAR_PARTS.WHEEL_FRONT_R,
             vertices: baseCube.vertices,
             indices: baseCube.indices,
             normals: baseCube.normals,
@@ -85,7 +94,7 @@ var vCar = {
             shininess : 100, 
         },
         {
-            type: PARTS.WHEEL_FRONT_L,
+            type: CAR_PARTS.WHEEL_FRONT_L,
             vertices: baseCube.vertices,
             indices: baseCube.indices,
             normals: baseCube.normals,
@@ -152,16 +161,16 @@ var vCar = {
     getPartLocalMatrix : function(baseMatrix, partType){
         baseMatrix = getLocalMatrix(baseMatrix, [1,1,1], [0,degToRad(this.facing),0], [this.px, this.py, this.pz]);
         //baseMatrix*S*R*T
-        if(partType === PARTS.BODY)
-            return getLocalMatrix(baseMatrix, [0.25, 0.14, 1], [0,0,0], [0,0,0]);
-        else if (partType === PARTS.WHEEL_REAR_R)
-            return getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [0.58,this.raggioRuotaP-0.28,0.8]);
-        else if (partType === PARTS.WHEEL_REAR_L)
-            return getLocalMatrix(baseMatrix, [0.1, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-0.58,this.raggioRuotaP-0.28,0.8]);
-        else if (partType === PARTS.WHEEL_FRONT_R)
-            return getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [0.58,this.raggioRuotaA-0.28,-0.55]);
-        else if (partType === PARTS.WHEEL_FRONT_L)
-            return getLocalMatrix(baseMatrix, [0.08, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-0.58,this.raggioRuotaA-0.28,-0.55]);
+        if(partType === CAR_PARTS.BODY)
+            return getLocalMatrix(baseMatrix, this.carlingaScale, [0,0,0], [0,0,0]);
+        else if (partType === CAR_PARTS.WHEEL_REAR_R)
+            return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(-this.mozzoP), degToRad(180), 0], [this.larghezzaAsse,this.raggioRuotaP-0.28,this.posizioneAsseP]);
+        else if (partType === CAR_PARTS.WHEEL_REAR_L)
+            return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-this.larghezzaAsse,this.raggioRuotaP-0.28,this.posizioneAsseP]);
+        else if (partType === CAR_PARTS.WHEEL_FRONT_R)
+            return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180+this.sterzo), 0], [this.larghezzaAsse,this.raggioRuotaA-0.28,-this.posizioneAsseA]);
+        else if (partType === CAR_PARTS.WHEEL_FRONT_L)
+            return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-this.larghezzaAsse,this.raggioRuotaA-0.28,-this.posizioneAsseA]);
         else
             return baseMatrix;
     },
@@ -169,19 +178,27 @@ var vCar = {
     //Stato iniziale
     px: 0, py: 0, pz: 0, //Posizione
     facing: 0, // orientamento (0 = -Z)
-    mozzoA: 0, mozzoP: 0, sterzo:0,   // Rotazione ruote
+    mozzoP: 0, mozzoA: 0, sterzo:0,   // Rotazione ruote
     vx: 0, vy: 0, vz: 0, //Velocità
 
     //Settings
     velSterzo : 3.4,
     velRitornoSterzo : 0.93,
-    accMax : 0.0011,
+    accMax : 0.0151,
     attritoZ : 0.991,
     attritoX :  0.8, 
     attritoY : 1.0,
-    raggioRuotaA : 0.25,
-    raggioRuotaP : 0.30,
+    
     grip : 0.75,
+
+    //Model Settings
+    carlingaScale: [0.3, 0.3, 0.3], //Scala dimensione modello carrozzeria macchina
+    raggioRuotaA : 0.28, //Scala dimensione raggio ruote anteriori
+    raggioRuotaP : 0.3, //Scala dimensione raggio ruote posteriori
+    spallaRuota : 0.3, //Scala dimensione spalla ruota
+    larghezzaAsse : 1/2, //Larghezza asse ruote macchina (diviso / 2)
+    posizioneAsseP : 0.75,
+    posizioneAsseA : 1,
 }
 
 
