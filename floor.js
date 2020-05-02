@@ -18,7 +18,9 @@ var floor = {
     //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
     getPartLocalMatrix : function(baseMatrix, partType){
         //baseMatrix*S*R*T
-        return getLocalMatrix(baseMatrix, [12,1,12], [0,0,0], [0,0,0]);
-    }
+        return getLocalMatrix(baseMatrix, [this.size,1,this.size], [0,0,0], [0,0,0]);
+    },
+
+    size: 30,
         
 }

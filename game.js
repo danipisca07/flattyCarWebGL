@@ -18,11 +18,7 @@ var gfxSettings = 'high';
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [0.0, 5.0, 0.0 ]; //Posizione punto luce
 
-var gl, program;
-var positionLocation, positionBuffer;
-var colorLocation, colorBuffer;
-var uniformSetters, attributeSetters, bufferInfo; 
-var attribs, staticUniforms, computedUniforms;
+var gl;
 
 function init() {
     /** @type {HTMLCanvasElement} */
@@ -164,20 +160,23 @@ function loadMesh(filename) {
 }
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
-function loadCarLow(){
-    loadMesh('./assets/camaro_body_low.obj').then( (data) => {
+function loadCar(setting){
+    loadMesh('./assets/camaro_body_'+setting+'.obj').then( (data) => {
         let body = loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = [0.1, 0.8, 0.1, 1];
         body.shininess = 100;
         vCar.parts[0] = body;
         vCar.drawMode = 'arrays'; 
-        //Avvia la renderizzazione della scena
-        vCar.loaded = true; 
-        startAnimating(60, drawScene);
-        loadCarHigh();//Avvia il caricamento dei modelli di più alta definizione
+        if(!vCar.loaded){
+            //Avvia la renderizzazione della scena
+            vCar.loaded = true; 
+            startAnimating(60, drawScene);
+            //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
+        }
+        
     });
-    loadMesh('./assets/camaro_wheel_low.obj').then( (data) => {
+    loadMesh('./assets/camaro_wheel_'+setting+'.obj').then( (data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = [0.1, 0.1, 0.1, 1];
         wheel.shininess = 100;
@@ -197,6 +196,13 @@ function loadCarHigh(){
         let body = loadObj(data);
         vCar.parts[0].vertices = body.vertices;
         vCar.parts[0].normals = body.normals;
+
+        if(!vCar.loaded){
+            //Avvia la renderizzazione della scena
+            vCar.loaded = true; 
+            startAnimating(60, drawScene);
+            //loadCarHigh();//Avvia il caricamento dei modelli di più alta definizione
+        }
     });
     loadMesh('./assets/camaro_wheel_high.obj').then( (data) => {
         let wheel = loadObj(data);
@@ -212,7 +218,7 @@ $(document).ready(function() {
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_Low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
 
-    loadCarLow();
+    loadCar('high');
     //loadCarHigh();
 });
 

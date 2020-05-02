@@ -111,12 +111,19 @@ function animate() {
     }
 }
 
+let lastShaders = null; let program;
+let lastBufferInfo = null; let arrays;
 //RENDERING OGGETTI MIA LIBRERIA
 function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix, gfxSettings){
     let shaders = shaderScripts[gfxSettings];
     if(shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
-    let program = webglUtils.createProgramFromSources(gl, [ shaders.vertexShader, shaders.fragmentShader]);
-    gl.useProgram(program);
+    if(shaders !== lastShaders) //Ricarico gli shader solo se necessario
+    { 
+        lastShaders = shaders;
+        program = webglUtils.createProgramFromSources(gl, [ shaders.vertexShader, shaders.fragmentShader]);
+        gl.useProgram(program);
+        lastBufferInfo = null;
+    }   
     for(let i=0; i<model.parts.length; i++){
         let partManipulationMatrix = model.getPartLocalMatrix(baseWorldMatrix, model.parts[i].type);
         renderPart(gl, program, model, i, partManipulationMatrix, viewProjectionMatrix, gfxSettings);
@@ -129,7 +136,7 @@ function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionM
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
         u_color: model.parts[partNumber].color,
     }
-    let arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
+    arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
 
     if(model.drawMode === 'elements'){
         arrays.indices= { data: model.parts[partNumber].indices, numComponents: 3,};
@@ -166,8 +173,10 @@ function setUpElementFromArrays(gl, program, arrays, uniforms){
     let uniformSetters = webglUtils.createUniformSetters(gl,program);
     let attributeSetters = webglUtils.createAttributeSetters(gl,program);
     let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+    if(bufferInfo != lastBufferInfo){
+        lastBufferInfo = bufferInfo;
+        webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
+    }
     
-    webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
-
     webglUtils.setUniforms(uniformSetters, uniforms);
 }
