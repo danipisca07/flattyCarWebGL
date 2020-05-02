@@ -33,7 +33,7 @@ function main() {
 
     setupUI();
     //drawScene();
-    startAnimating(60, drawScene);
+    
 }
 
 // Draw the scene.
@@ -147,37 +147,54 @@ function loadObj(content){
     return newPart;
 }
 
-function loadMesh(filename, targetElement, partNumber, partType) {
-    $.ajax({
+function loadMesh(filename) {
+    return $.ajax({
         url: filename,
         dataType: 'text'
-    }).done(function(data) {
-        let newPart = loadObj(data);
-        newPart.type = partType;
-        newPart.color = [0.1, 0.8, 0.1, 1];
-        newPart.shininess = 100;
-        targetElement.parts[partNumber] = newPart;
-        targetElement.drawMode = 'arrays';
-        targetElement.loaded = true;
     }).fail(function() {
         alert('File [' + filename + "] non trovato!");
     });
 }
 
 function loadCarLow(){
-    loadMesh('./assets/camaro_body_low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
-    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_REAR_R, CAR_PARTS.WHEEL_REAR_R);
-    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_REAR_L, CAR_PARTS.WHEEL_REAR_L);
-    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_FRONT_R, CAR_PARTS.WHEEL_FRONT_R);
-    loadMesh('./assets/camaro_wheel_low.obj', vCar, CAR_PARTS.WHEEL_FRONT_L, CAR_PARTS.WHEEL_FRONT_L);
+    loadMesh('./assets/camaro_body_low.obj').then( (data) => {
+        let body = loadObj(data);
+        body.type = CAR_PARTS.BODY;
+        body.color = [0.1, 0.8, 0.1, 1];
+        body.shininess = 100;
+        vCar.parts[0] = body;
+        vCar.drawMode = 'arrays';
+        vCar.loaded = true;
+        startAnimating(60, drawScene);
+        loadCarHigh();
+    });
+    loadMesh('./assets/camaro_wheel_low.obj').then( (data) => {
+        let wheel = loadObj(data);
+        wheel.color = [0.1, 0.1, 0.1, 1];
+        wheel.shininess = 100;
+        for(let i = 1; i<5; i++){
+            vCar.parts[i] = {...wheel};
+        }
+        vCar.parts[1].type = CAR_PARTS.WHEEL_REAR_R;
+        vCar.parts[2].type = CAR_PARTS.WHEEL_REAR_L;
+        vCar.parts[3].type = CAR_PARTS.WHEEL_FRONT_R;
+        vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
+    });
 }
 
 function loadCarHigh(){
-    loadMesh('./assets/camaro_body_high.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
-    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_REAR_R, CAR_PARTS.WHEEL_REAR_R);
-    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_REAR_L, CAR_PARTS.WHEEL_REAR_L);
-    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_FRONT_R, CAR_PARTS.WHEEL_FRONT_R);
-    loadMesh('./assets/camaro_wheel_high.obj', vCar, CAR_PARTS.WHEEL_FRONT_L, CAR_PARTS.WHEEL_FRONT_L);
+    loadMesh('./assets/camaro_body_high.obj').then( (data) => {
+        let body = loadObj(data);
+        vCar.parts[0].vertices = body.vertices;
+        vCar.parts[0].normals = body.normals;
+    });
+    loadMesh('./assets/camaro_wheel_high.obj').then( (data) => {
+        let wheel = loadObj(data);
+        for(let i = 1; i<5; i++){
+            vCar.parts[i].vertices = wheel.vertices;
+            vCar.parts[i].normals = wheel.normals;
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -185,7 +202,7 @@ $(document).ready(function() {
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
 
     loadCarLow();
-    loadCarHigh();
+    //loadCarHigh();
 });
 
 main();
