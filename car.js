@@ -184,11 +184,11 @@ var vCar = {
     //Settings fisici
     velSterzo : 3.4,
     velRitornoSterzo : 0.93,
-    accMax : 0.0151,
-    attritoZ : 0.991,
+    accMax : 0.008, //Accelerazione
+    attritoZ : 0.991, //Velocità massima
     attritoX :  0.8, 
     attritoY : 1.0,
-    grip : 0.75,
+    grip : 0.075, //Grip sterzo
 
     //Model Settings
     carlingaScale: [0.3, 0.3, 0.3], //Scala dimensione modello carrozzeria macchina
