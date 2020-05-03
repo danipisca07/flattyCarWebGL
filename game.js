@@ -200,6 +200,25 @@ $(document).ready(function() {
 
     loadCar('low');
     //loadCarHigh();
+    loadMesh('./assets/cube.obj').then( (data) => {
+        let cubeMesh = loadObj(data);
+        var cube = {
+            parts : [
+                {
+                    vertices : cubeMesh.vertices,
+                    normals : cubeMesh.normals,
+                    color: [0.3,0.3,0.3,1],
+                    shininess: 100,
+                }
+            ],
+            drawMode : 'arrays',
+            worldMatrix : getManipulationMatrix(m4.identity(), [1,1,1], [0,0,0], [0,0,-10] ),
+            getPartLocalMatrix : function(partType){
+                return this.worldMatrix;
+            },
+        };
+        sceneObjects.push(cube);
+    });
 });
 
 init();
