@@ -15,12 +15,12 @@ var floor = {
     ],
     drawMode : 'elements',
 
-    //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
-    getPartLocalMatrix : function(baseMatrix, partType){
-        //baseMatrix*S*R*T
-        return getLocalMatrix(baseMatrix, [this.size,1,this.size], [0,0,0], [0,0,0]);
-    },
+    worldMatrix : m4.identity(),
 
-    size: 10,
+    //TODO: mettere la lista delle manipolazioni qui poi ciclare su questa per renderizzare
+    getPartLocalMatrix : function(partType){
+        //baseMatrix*S*R*T
+        return this.worldMatrix;
+    },
         
 }

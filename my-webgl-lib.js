@@ -144,7 +144,7 @@ function animate() {
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
 let lastBufferInfo = null; let arrays; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 //RENDERING OGGETTI MIA LIBRERIA
-function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix, gfxSettings){
+function renderElement(gl, model, viewProjectionMatrix, gfxSettings){
     let shaders;
     if(model.isTextured)
         shaders = texturedShaderScripts[gfxSettings];
@@ -159,51 +159,51 @@ function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix, gfxSett
         lastBufferInfo = null; //Se ricarico gli shader dovrò per forza ricaricare anche tutti i buffer (cambiano gli indirizzi)
     }   
     for(let i=0; i<model.parts.length; i++){
-        let partManipulationMatrix = model.getPartLocalMatrix(baseWorldMatrix, model.parts[i].type);
-        renderPart(gl, program, model, i, partManipulationMatrix, viewProjectionMatrix, gfxSettings);
+        renderPart(gl, program, model, model.parts[i], viewProjectionMatrix, gfxSettings);
     }
 }
 
-function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionMatrix, gfxSettings){
+function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings){
+    let worldMatrix = model.getPartLocalMatrix(part.type);
     let uniforms = {
         u_world : worldMatrix,
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
-        u_color: model.parts[partNumber].color,
+        u_color: part.color,
     }
-    arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
+    arrays = { position: { data: part.vertices, numComponents: 3} };
 
     if(model.isTextured){
-        arrays.textCoord = { data: model.parts[partNumber].textCoord, numComponents: 2};
-        uniforms.u_texture = model.parts[partNumber].texture;
+        arrays.textCoord = { data: part.textCoord, numComponents: 2};
+        uniforms.u_texture = part.texture;
     }
 
     if(model.drawMode === 'elements'){
-        arrays.indices= { data: model.parts[partNumber].indices, numComponents: 3,};
+        arrays.indices= { data: part.indices, numComponents: 3,};
     }
         
     if(gfxSettings === 'high'){
         uniforms.u_ambient = ambientLight;
         uniforms.u_pointLightPosition = pointLightPosition;
         uniforms.u_cameraPosition = cameraSettings.cameraPosition;
-        uniforms.u_shininess = model.parts[partNumber].shininess;
-        arrays.normal = { data: model.parts[partNumber].normals, numComponents: 3};
+        uniforms.u_shininess = part.shininess;
+        arrays.normal = { data: part.normals, numComponents: 3};
     }
     setUpElementFromArrays(gl, program, arrays, uniforms);
     if(model.drawMode === 'arrays'){
-        gl.drawArrays(gl.TRIANGLES, 0, model.parts[partNumber].vertices.length/3);
+        gl.drawArrays(gl.TRIANGLES, 0, part.vertices.length/3);
     }else if(model.drawMode === 'elements'){
-        gl.drawElements(gl.TRIANGLES, model.parts[partNumber].indices.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, part.indices.length, gl.UNSIGNED_SHORT, 0);
     }
     
     //WIREFRAME 
-    if(gfxSettings === 'low' && model.parts[partNumber].indicesWF !== undefined){
+    if(gfxSettings === 'low' && part.indicesWF !== undefined){
         arrays = {
-            position: { data: model.parts[partNumber].verticesWF, numComponents: 3},
-            indices: { data: model.parts[partNumber].indicesWF, numComponents: 2,},
+            position: { data: part.verticesWF, numComponents: 3},
+            indices: { data: part.indicesWF, numComponents: 2,},
         }
         uniforms.u_color= [0,0,0,1];
         setUpElementFromArrays(gl, program, arrays, uniforms);
-        gl.drawElements(gl.LINES, model.parts[partNumber].indicesWF.length, gl.UNSIGNED_SHORT, 0); 
+        gl.drawElements(gl.LINES, part.indicesWF.length, gl.UNSIGNED_SHORT, 0); 
     }
     
 }

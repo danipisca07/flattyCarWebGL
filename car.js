@@ -156,10 +156,12 @@ var vCar = {
         vCar.pz+=vCar.vz;
     },
 
-    //Restituisce le worldMatrix(=modelMatrix) di ognuna delle parti che compongono la macchina per poter
+    worldMatrix: m4.identity(),
+
+    //Restituisce le modelMatrix di ognuna delle parti che compongono la macchina per poter
     // passare direttamente alla renderizzazione di ognuna
-    getPartLocalMatrix : function(baseMatrix, partType){
-        baseMatrix = getLocalMatrix(baseMatrix, [1,1,1], [0,degToRad(this.facing),0], [this.px, this.py, this.pz]);
+    getPartLocalMatrix : function(partType){
+        let baseMatrix = getLocalMatrix(this.worldMatrix, [1,1,1], [0,degToRad(this.facing),0], [this.px, this.py, this.pz]);
         //baseMatrix*S*R*T
         if(partType === CAR_PARTS.BODY)
             return getLocalMatrix(baseMatrix, this.carlingaScale, [0,0,0], [0,0,0]);
