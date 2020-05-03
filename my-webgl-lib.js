@@ -168,13 +168,17 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
     let uniforms = {
         u_world : worldMatrix,
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
-        u_color: part.color,
     }
     arrays = { position: { data: part.vertices, numComponents: 3} };
 
     if(model.isTextured){
         arrays.textCoord = { data: part.textCoord, numComponents: 2};
-        uniforms.u_texture = part.texture;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, part.texture);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+        uniforms.u_color = part.color;
     }
 
     if(model.drawMode === 'elements'){
@@ -189,6 +193,7 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         arrays.normal = { data: part.normals, numComponents: 3};
     }
     setUpElementFromArrays(gl, program, arrays, uniforms);
+    
     if(model.drawMode === 'arrays'){
         gl.drawArrays(gl.TRIANGLES, 0, part.vertices.length/3);
     }else if(model.drawMode === 'elements'){

@@ -559,13 +559,14 @@ function SecondPass(model, data, mesh) {
 	
 	mesh.nvert = model.numvertices;
 	mesh.nface = model.numtriangles;
+	mesh.ntexc = model.texcoords;
 
 	/* on the second pass through the file, read all the data into the
 	allocated arrays */
 //numvertices = numnormals = numtexcoords = 1;
 	numvertices = 1;
 	numnormals = 0;
-	numtexcoords = 1;
+	numtexcoords = 0;
 	numtriangles = 0;
 	material = 0;
 
@@ -578,6 +579,7 @@ function SecondPass(model, data, mesh) {
 	{
 		mesh.face[h]=new nfc();
 		mesh.face[h].norm = new Array();
+		mesh.face[h].tcor = new Array();
 	}
 	
 
@@ -681,7 +683,9 @@ function SecondPass(model, data, mesh) {
 		{
 		mesh.face[numtriangles].vert[jj]=model.triangles[numtriangles-1].vindices[jj];
 		mesh.face[numtriangles].norm[jj]=model.triangles[numtriangles-1].nindices[jj]; //AGGIUNTA per indici normali
-		}
+		if(mesh.face[numtriangles].tcor != undefined)
+			mesh.face[numtriangles].tcor[jj]=model.triangles[numtriangles-1].tindices[jj]; //AGGIUNTA per coordinate texture
+	}
 //	      console.log(2,mesh.face[numtriangles].n_v_e);
 
 		break;
@@ -695,7 +699,8 @@ function SecondPass(model, data, mesh) {
 		model.vcolors[3 * i + 1]=1.0;
 		model.vcolors[3 * i + 2]=1.0;
 	}
-	mesh.normals = model.normals;
+	mesh.texCoord = texcoords; //Restituisco anche le coordinate texture
+	mesh.normals = normals; //Restituisco anche le normali 
 	return mesh;
 }
 

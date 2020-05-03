@@ -90,6 +90,8 @@ var texturedShaderScripts = {
     high : {
         vertexShader: `attribute vec4 a_position;
         attribute vec3 a_normal;
+        attribute vec2 a_textCoord;
+        varying vec2 v_textCoord;
 
         uniform mat4 u_worldViewProjection, u_world;
         uniform vec3 u_pointLightPosition;
@@ -101,6 +103,7 @@ var texturedShaderScripts = {
 
         void main() {
             gl_Position = u_worldViewProjection * a_position; //Dovrei farmi dare solo vp e qui fare vp * worldPos
+            v_textCoord = a_textCoord;
             v_normal = vec3(a_normal.x, a_normal.y, a_normal.z); //Perche le normali erano sbagliate, non farlo se non serve
             v_normal = mat3(u_world) * v_normal;
             vec3 surfaceWorldPosition = (u_world * a_position).xyz;
@@ -109,11 +112,12 @@ var texturedShaderScripts = {
         }`,
         fragmentShader: `precision mediump float;
 
-        uniform vec4 u_color;
         uniform float u_ambient;
         uniform float u_shininess;
+        uniform sampler2D u_texture;
 
         varying vec3 v_normal, v_surfaceToLight, v_surfaceToCamera;
+        varying vec2 v_textCoord;
         void main() {
             vec3 normal = normalize(v_normal);
             vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
@@ -129,7 +133,7 @@ var texturedShaderScripts = {
             float totLight = u_ambient + pointLight;
             float light = clamp(totLight/(1.-u_ambient), u_ambient, 1.0); //Mappa nel range u_ambient <-> 1
             
-            gl_FragColor = u_color;
+            gl_FragColor = texture2D(u_texture, v_textCoord);
             vec3 v = vec3(light, light, light);
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight;

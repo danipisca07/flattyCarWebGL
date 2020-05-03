@@ -110,6 +110,8 @@ function loadObj(content){
     //let mesh = new subd_mesh();
     mesh = ReadOBJ(content, mesh);
     newPart.vertices = new Array();
+    if(mesh.texCoord != null)
+        newPart.textCoord = new Array();
     newPart.normals = new Array();
     //newPart.indices = indices;
 
@@ -130,6 +132,12 @@ function loadObj(content){
                 newPart.vertices.push(mesh.vert[face.vert[0]].x,mesh.vert[face.vert[0]].y,mesh.vert[face.vert[0]].z);
                 newPart.vertices.push(mesh.vert[face.vert[j+1]].x,mesh.vert[face.vert[j+1]].y,mesh.vert[face.vert[j+1]].z);
                 newPart.vertices.push(mesh.vert[face.vert[j+2]].x,mesh.vert[face.vert[j+2]].y,mesh.vert[face.vert[j+2]].z);
+                if(mesh.texCoord != null){
+                    //Aggiungo coordinate texture
+                    newPart.textCoord.push(mesh.texCoord[(face.tcor[0]-1)*2], mesh.texCoord[(face.tcor[0]-1)*2+1]);
+                    newPart.textCoord.push(mesh.texCoord[(face.tcor[j+1]-1)*2], mesh.texCoord[(face.tcor[j+1]-1)*2+1]);
+                    newPart.textCoord.push(mesh.texCoord[(face.tcor[j+2]-1)*2], mesh.texCoord[(face.tcor[j+2]-1)*2+1]);    
+                }
                 //Aggiungo le normali della faccia
                 newPart.normals.push(mesh.normals[(face.norm[0]-1)*3], mesh.normals[(face.norm[0]-1)*3+1], mesh.normals[(face.norm[0]-1)*3+2]);
                 newPart.normals.push(mesh.normals[(face.norm[j+1]-1)*3], mesh.normals[(face.norm[j+1]-1)*3+1], mesh.normals[(face.norm[j+1]-1)*3+2]);
@@ -199,25 +207,31 @@ $(document).ready(function() {
     //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
 
     loadCar('low');
-    //loadCarHigh();
-    loadMesh('./assets/cube.obj').then( (data) => {
+    loadMesh('./assets/texturedCube.obj').then( (data) => {
         let cubeMesh = loadObj(data);
-        var cube = {
+        var cube = { //L'ordine delle coordinate texture è corretto???????????????????
             parts : [
                 {
                     vertices : cubeMesh.vertices,
                     normals : cubeMesh.normals,
+                    textCoord : cubeMesh.textCoord,
                     color: [0.3,0.3,0.3,1],
                     shininess: 100,
                 }
             ],
+            isTextured: true,
             drawMode : 'arrays',
-            worldMatrix : getManipulationMatrix(m4.identity(), [1,1,1], [0,0,0], [0,0,-10] ),
+            worldMatrix : getLocalMatrix(m4.identity(), [1,1,1], [0,0,degToRad(90)], [0,1,-10] ),
             getPartLocalMatrix : function(partType){
                 return this.worldMatrix;
             },
         };
-        sceneObjects.push(cube);
+        var texImage = new Image();
+        texImage.src = './assets/f-tex.png';
+        texImage.addEventListener('load', () =>{
+            cube.parts[0].texture = texImage;
+            sceneObjects.push(cube);
+        });
     });
 });
 
