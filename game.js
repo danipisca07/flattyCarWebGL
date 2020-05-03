@@ -13,17 +13,20 @@ var translation = [0,0,0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1,1,1]; 
 
-var gfxSettings = 'high';
+var gfxSettings = 'low';
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [0.0, 5.0, 0.0 ]; //Posizione punto luce
 
-var gl;
+var gl, baseCarMatrix;
 
 function init() {
     /** @type {HTMLCanvasElement} */
     var canvas = document.querySelector("#canvas");
     gl = canvas.getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
+
+    floor.size = 30000;
+    baseCarMatrix = m4.translation(0, 0.28,0);
 
     setupUI();
     
@@ -54,9 +57,10 @@ function drawScene(elapsed) {
     cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (la stessa della macchina)
     let viewProjectionMatrix = getViewProjectionMatrixFollow(gl);
     
+    //Pavimento
     renderElement(gl, floor, m4.identity(), viewProjectionMatrix, gfxSettings);
 
-    let baseCarMatrix = m4.translation(0, 0.28,0);
+    //Macchina
     vCar.doStep(key);
     renderElement(gl, vCar, baseCarMatrix, viewProjectionMatrix, gfxSettings);
 }

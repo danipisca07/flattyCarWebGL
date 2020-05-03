@@ -21,6 +21,6 @@ var floor = {
         return getLocalMatrix(baseMatrix, [this.size,1,this.size], [0,0,0], [0,0,0]);
     },
 
-    size: 3000,
+    size: 10,
         
 }

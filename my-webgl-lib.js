@@ -141,18 +141,22 @@ function animate() {
     }
 }
 
-let lastShaders = null; let program;
-let lastBufferInfo = null; let arrays;
+let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
+let lastBufferInfo = null; let arrays; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 //RENDERING OGGETTI MIA LIBRERIA
 function renderElement(gl, model, baseWorldMatrix, viewProjectionMatrix, gfxSettings){
-    let shaders = shaderScripts[gfxSettings];
+    let shaders;
+    if(model.isTextured)
+        shaders = texturedShaderScripts[gfxSettings];
+    else
+        shaders = defaultShaderScripts[gfxSettings];
     if(shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
     if(shaders !== lastShaders) //Ricarico gli shader solo se necessario
     { 
         lastShaders = shaders;
         program = webglUtils.createProgramFromSources(gl, [ shaders.vertexShader, shaders.fragmentShader]);
         gl.useProgram(program);
-        lastBufferInfo = null;
+        lastBufferInfo = null; //Se ricarico gli shader dovrò per forza ricaricare anche tutti i buffer (cambiano gli indirizzi)
     }   
     for(let i=0; i<model.parts.length; i++){
         let partManipulationMatrix = model.getPartLocalMatrix(baseWorldMatrix, model.parts[i].type);
@@ -167,6 +171,11 @@ function renderPart(gl, program, model, partNumber, worldMatrix, viewProjectionM
         u_color: model.parts[partNumber].color,
     }
     arrays = { position: { data: model.parts[partNumber].vertices, numComponents: 3} };
+
+    if(model.isTextured){
+        arrays.textCoord = { data: model.parts[partNumber].textCoord, numComponents: 2};
+        uniforms.u_texture = model.parts[partNumber].texture;
+    }
 
     if(model.drawMode === 'elements'){
         arrays.indices= { data: model.parts[partNumber].indices, numComponents: 3,};
