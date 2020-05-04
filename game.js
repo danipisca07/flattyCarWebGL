@@ -31,6 +31,7 @@ $(document).ready(function() {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
     setupUI();
+    
 
     //Caricamento oggetti
     loadCar('low');
@@ -122,34 +123,34 @@ var key=[false,false,false,false]; //Vedi car.js per i codici tasti
 window.addEventListener('keydown', doKeyDown, true);
 function doKeyDown(e){
     switch(e.keyCode){
-        case keys.W_CODE:
-            key[keys.W]=true;
+        case KEYS.W_CODE:
+            key[KEYS.W]=true;
             break;
-        case keys.A_CODE:
-            key[keys.A]=true;
+        case KEYS.A_CODE:
+            key[KEYS.A]=true;
             break;
-        case keys.S_CODE:
-            key[keys.S]=true;
+        case KEYS.S_CODE:
+            key[KEYS.S]=true;
             break;
-        case keys.D_CODE:
-            key[keys.D]=true;
+        case KEYS.D_CODE:
+            key[KEYS.D]=true;
             break;
     }
 }
 window.addEventListener('keyup', doKeyUp, true);
 function doKeyUp(e){
     switch(e.keyCode){
-        case keys.W_CODE:
-            key[keys.W]=false;
+        case KEYS.W_CODE:
+            key[KEYS.W]=false;
             break;
-        case keys.A_CODE:
-            key[keys.A]=false;
+        case KEYS.A_CODE:
+            key[KEYS.A]=false;
             break;
-        case keys.S_CODE:
-            key[keys.S]=false;
+        case KEYS.S_CODE:
+            key[KEYS.S]=false;
             break;
-        case keys.D_CODE:
-            key[keys.D]=false;
+        case KEYS.D_CODE:
+            key[KEYS.D]=false;
             break;
     }
 }

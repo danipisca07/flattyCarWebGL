@@ -1,4 +1,4 @@
-const keys = {
+const KEYS = {
     W: 0, W_CODE: 87,
     A: 1, A_CODE: 65,
     S: 2, S_CODE: 83,
@@ -122,12 +122,12 @@ var vCar = {
         vzm = +sinf*vCar.vx + cosf*vCar.vz;
         
         // gestione dello sterzo
-        if (keyPressed[keys.A]) vCar.sterzo+=vCar.velSterzo;
-        if (keyPressed[keys.D]) vCar.sterzo-=vCar.velSterzo;
+        if (keyPressed[KEYS.A]) vCar.sterzo+=vCar.velSterzo;
+        if (keyPressed[KEYS.D]) vCar.sterzo-=vCar.velSterzo;
         vCar.sterzo*=vCar.velRitornoSterzo; // ritorno a volante fermo
         
-        if (keyPressed[keys.W]) vzm-=vCar.accMax; // accelerazione in avanti
-        if (keyPressed[keys.S]) vzm+=vCar.accMax; // accelerazione indietro
+        if (keyPressed[KEYS.W]) vzm-=vCar.accMax; // accelerazione in avanti
+        if (keyPressed[KEYS.S]) vzm+=vCar.accMax; // accelerazione indietro
         
         // attriti (semplificando)
         vxm*=vCar.attritoX; 
