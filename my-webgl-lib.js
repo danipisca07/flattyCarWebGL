@@ -179,6 +179,7 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //gl.generateMipmap(gl.TEXTURE_2D);
     } else {
         var transparentPixel = new Uint8Array([0, 0, 0, 0]);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel);

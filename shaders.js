@@ -16,7 +16,7 @@ var shaderScripts = {
         varying vec2 v_textCoord;
         void main(void) {
             vec4 tex = texture2D(u_texture, v_textCoord);
-            gl_FragColor = tex + u_color * (1.-tex.a);
+            gl_FragColor = tex + u_color * (1.-tex.a); //oltre alla normale applicazione della texture applico anche la trasparenza nel caso di texture png
         }`,
     },
     high : {
@@ -68,7 +68,6 @@ var shaderScripts = {
             
             vec4 tex = texture2D(u_texture, v_textCoord);
             gl_FragColor = tex + u_color * (1.-tex.a);
-            vec3 v = vec3(light, light, light);
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight;
 

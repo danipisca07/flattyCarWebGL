@@ -15,26 +15,65 @@ var scale = [1,1,1];
 
 var gfxSettings = 'high';
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
-var pointLightPosition = [0.0, 5.0, -10.0 ]; //Posizione punto luce
+var pointLightPosition = [10.0, 10.0, 0.0 ]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 
-function init() {
-    /** @type {HTMLCanvasElement} */
-    var canvas = document.querySelector("#canvas");
-    gl = canvas.getContext("webgl");
+$(document).ready(function() {
+    gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
-
-    //Pavimento
-    floor.worldMatrix = m4.scaling(3000,1,3000);
-    sceneObjects.push(floor);
-    //Macchina
-    vCar.worldMatrix = m4.translation(0, 0.28,0);
-    sceneObjects.push(vCar);
     setupUI();
-    
-}
+
+    //Caricamento oggetti
+    loadCar('low');
+    loadMesh('./assets/floor.obj').then( (data) => {
+        let floorMesh = loadObj(data);
+        var floor = {
+            parts : [
+                {
+                    vertices : floorMesh.vertices,
+                    normals : floorMesh.normals,
+                    textCoord : floorMesh.textCoord,
+                    color: [0.3,0.3,0.3,1],
+                    shininess: 1000,
+                }
+            ],
+            drawMode : 'arrays',
+            worldMatrix : getLocalMatrix(m4.identity(), [1000,1,1000], [0,0,0], [0,0,0] ),
+            getPartLocalMatrix : function(partType){
+                return this.worldMatrix;
+            },
+        };
+        sceneObjects.push(floor);
+    });
+    loadMesh('./assets/texturedCube.obj').then( (data) => {
+        let cubeMesh = loadObj(data);
+        var cube = {
+            parts : [
+                {
+                    vertices : cubeMesh.vertices,
+                    normals : cubeMesh.normals,
+                    textCoord : cubeMesh.textCoord,
+                    color: [0.3,1,0.3,1],
+                    shininess: 100,
+                }
+            ],
+            isTextured: true,
+            drawMode : 'arrays',
+            worldMatrix : getLocalMatrix(m4.identity(), [1,1,1], [0,0,degToRad(90)], [0,1,-10] ),
+            getPartLocalMatrix : function(partType){
+                return this.worldMatrix;
+            },
+        };
+        var texImage = new Image();
+        texImage.src = './assets/f-tex.png';
+        texImage.addEventListener('load', () =>{
+            cube.parts[0].texture = texImage;
+            sceneObjects.push(cube);
+        });
+    });
+});
 
 // Metodo di rendering
 function drawScene(elapsed) {
@@ -172,6 +211,7 @@ function loadMesh(filename) {
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting){
+    vCar.worldMatrix = m4.translation(0, 0.28,0);
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
     loadMesh('./assets/camaro_body_'+setting+'.obj').then( (data) => {
@@ -182,12 +222,11 @@ function loadCar(setting){
         vCar.parts[0] = body;
         vCar.drawMode = 'arrays';
         if(!vCar.loaded){
-            //Avvia la renderizzazione della scena
+            sceneObjects.push(vCar);
             vCar.loaded = true; 
-            startAnimating(60, drawScene);
+            startAnimating(60, drawScene);//Avvia la renderizzazione della scena
             //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
         }
-        
     });
     loadMesh('./assets/camaro_wheel_'+setting+'.obj').then( (data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
@@ -216,38 +255,5 @@ function loadCar(setting){
 }
 
 
-$(document).ready(function() {
-    //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_Low.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY);
-    //loadMesh('./assets/camaro/Chevrolet_Camaro_SS_High.obj', vCar, CAR_PARTS.BODY, CAR_PARTS.BODY); // 151k e 149k
 
-    loadCar('low');
-    loadMesh('./assets/texturedCube.obj').then( (data) => {
-        let cubeMesh = loadObj(data);
-        var cube = { //L'ordine delle coordinate texture è corretto???????????????????
-            parts : [
-                {
-                    vertices : cubeMesh.vertices,
-                    normals : cubeMesh.normals,
-                    textCoord : cubeMesh.textCoord,
-                    color: [0.3,1,0.3,1],
-                    shininess: 100,
-                }
-            ],
-            isTextured: true,
-            drawMode : 'arrays',
-            worldMatrix : getLocalMatrix(m4.identity(), [1,1,1], [0,0,degToRad(90)], [0,1,-10] ),
-            getPartLocalMatrix : function(partType){
-                return this.worldMatrix;
-            },
-        };
-        var texImage = new Image();
-        texImage.src = './assets/f-tex.png';
-        texImage.addEventListener('load', () =>{
-            cube.parts[0].texture = texImage;
-            sceneObjects.push(cube);
-        });
-    });
-});
-
-init();
 
