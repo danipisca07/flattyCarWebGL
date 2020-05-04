@@ -156,7 +156,8 @@ function renderElement(gl, model, viewProjectionMatrix, gfxSettings){
         lastBufferInfo = null; //Se ricarico gli shader dovrò per forza ricaricare anche tutti i buffer (cambiano gli indirizzi)
     }   
     for(let i=0; i<model.parts.length; i++){
-        renderPart(gl, program, model, model.parts[i], viewProjectionMatrix, gfxSettings);
+        if(model.parts[i] !== undefined)
+            renderPart(gl, program, model, model.parts[i], viewProjectionMatrix, gfxSettings);
     }
 }
 
@@ -173,7 +174,7 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
 
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    if(part.texture != undefined){
+    if(part.textCoord != undefined && part.texture != undefined){
         arrays.textCoord = { data: part.textCoord, numComponents: 2 };
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, part.texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -181,8 +182,10 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         //gl.generateMipmap(gl.TEXTURE_2D);
     } else {
-        var transparentPixel = new Uint8Array([0, 0, 0, 0]);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel);
+        var transparentPixel = new Uint8Array([0, 0, 0, 0]); 
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); //Imposto la texture di default ad un pixel trasparente
+        var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
+        gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
     }
 
     if(model.drawMode === 'elements'){
