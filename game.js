@@ -1,6 +1,13 @@
 "use strict";
 
+var CAMERA_MODE = {
+    FIRST_PERSON : 0,
+    THIRD_PERSON : 1,
+    FROM_TOP: 2,
+}
+
 var cameraSettings = { 
+    cameraMode : CAMERA_MODE.THIRD_PERSON,
     cameraPosition : [0, 0, 0],
     cameraRotation : [0, 0, 0],
     lookUpVector : [0, 1, 0],
@@ -83,23 +90,29 @@ function drawScene(elapsed) {
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
-    /* CAMERA AEREA */
-    /* cameraSettings.lookAtTarget = [vCar.px, vCar.py, vCar.pz], //Obbiettivo a cui la camera deve puntare
-    cameraSettings.cameraPosition = [vCar.px, vCar.py+7, vCar.pz+7]; //Posizione della camera
-    let viewProjectionMatrix = getViewProjectionMatrixLookAt(gl); */
-
-    /* Visuale prima persona */
-    /* cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (stessa della macchina)
-    cameraSettings.cameraPosition = [vCar.px, vCar.py+1, vCar.pz]; //Posizione della camera (appena sopra la macchina)
-    let viewProjectionMatrix = getViewProjectionMatrix(gl); */
-
-    /* Visuale terza persona */
-    //Obbiettivo a cui la camera deve puntare (appena sopra la macchina per puntare dove la macchina sta andando)
-    cameraSettings.lookAtTarget = [vCar.px, vCar.py+1, vCar.pz];
-    cameraSettings.cameraOffset = [0, 1, 3]; //Posizione della camera relativa all'oggetto che sta seguendo
-    cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (la stessa della macchina)
-    let viewProjectionMatrix = getViewProjectionMatrixFollow(gl);
-    
+    let viewProjectionMatrix;
+    switch(cameraSettings.cameraMode){
+        case(CAMERA_MODE.FIRST_PERSON):
+            /* Visuale prima persona */
+            cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (stessa della macchina)
+            cameraSettings.cameraPosition = [vCar.px, vCar.py+1, vCar.pz]; //Posizione della camera (appena sopra la macchina)
+            viewProjectionMatrix = getViewProjectionMatrix(gl);
+            break;
+        case(CAMERA_MODE.THIRD_PERSON):
+            /* Visuale terza persona */
+            //Obbiettivo a cui la camera deve puntare (appena sopra la macchina per puntare dove la macchina sta andando)
+            cameraSettings.lookAtTarget = [vCar.px, vCar.py+1, vCar.pz];
+            cameraSettings.cameraOffset = [0, 1, 3]; //Posizione della camera relativa all'oggetto che sta seguendo
+            cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (la stessa della macchina)
+            viewProjectionMatrix = getViewProjectionMatrixFollow(gl);
+            break;
+        case(CAMERA_MODE.FROM_TOP):
+            /* CAMERA AEREA */
+            cameraSettings.lookAtTarget = [vCar.px, vCar.py, vCar.pz], //Obbiettivo a cui la camera deve puntare
+            cameraSettings.cameraPosition = [vCar.px, vCar.py+7, vCar.pz+7]; //Posizione della camera
+            viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
+            break;
+    }
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings) );
@@ -240,6 +253,7 @@ function loadCar(setting){
         vCar.parts[3].type = CAR_PARTS.WHEEL_FRONT_R;
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
     });
+    setting = 'low';
     loadMesh('./assets/camaro_doors_'+setting+'.obj').then( (data) => {
         let body = loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
@@ -254,6 +268,10 @@ function loadCar(setting){
     });
 }
 
+function changeCameraHandler(e){
+    key = [false, false, false, false];
+    cameraSettings.cameraMode = event.target.selectedIndex;
+}
 
 
 

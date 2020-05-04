@@ -28,10 +28,31 @@
         <script type="text/javascript" src="./car.js"></script>
         <script type="text/javascript" src="./my-webgl-lib.js"></script>
 
-        
+        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <canvas id="canvas"></canvas>
+        <div id="controlPanel">
+          <b>Pannello di controllo</b>
+          <div id="gfxSettings">
+            <label for="gfxSettings">Qualità grafica:</label> 
+            <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
+              <option>low</option>  
+              <option selected>high</option>
+            </select><br/>
+            <label for="carQuality">Qualità modello macchina:</label> 
+            <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
+              <option selected>low</option>  
+              <option>high</option>
+            </select><br/>
+            <label for="cameraMode">Camera:</label> 
+            <select id="cameraMode" name="cameraMode" onchange="changeCameraHandler(event)">
+              <option>Prima persona</option>  
+              <option selected>Terza persona</option>
+              <option>Dall'alto</option>
+            </select>
+          </div>
+        </div>
         <div id="uiContainer">
           <div id="ui">
             <div id="fieldOfView"></div>
@@ -53,7 +74,6 @@
 
         <!-- TODO: 
         Input touch e gamepad
-        Almeno due oggetti con texture
         Pannello di controllo
         (opz) trasparenze/riflessione/ombre con on/off
         -->

@@ -1,0 +1,11 @@
+#uiContainer{
+    display:none;
+}
+#controlPanel{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: whitesmoke;
+    border: solid 1px black;
+    padding: 5px;
+}
