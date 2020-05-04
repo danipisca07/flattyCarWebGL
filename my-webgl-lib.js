@@ -145,11 +145,8 @@ let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ulti
 let lastBufferInfo = null; let arrays; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 //RENDERING OGGETTI MIA LIBRERIA
 function renderElement(gl, model, viewProjectionMatrix, gfxSettings){
-    let shaders;
-    if(model.isTextured)
-        shaders = texturedShaderScripts[gfxSettings];
-    else
-        shaders = defaultShaderScripts[gfxSettings];
+    if(gfxSettings === undefined) gfxSettings = this.gfxSettings;
+    let shaders = shaderScripts[gfxSettings];
     if(shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
     if(shaders !== lastShaders) //Ricarico gli shader solo se necessario
     { 
@@ -168,17 +165,23 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
     let uniforms = {
         u_world : worldMatrix,
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
+        u_color : part.color,
     }
-    arrays = { position: { data: part.vertices, numComponents: 3} };
+    arrays = { 
+        position: { data: part.vertices, numComponents: 3},
+    };
 
-    if(model.isTextured){
-        arrays.textCoord = { data: part.textCoord, numComponents: 2};
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    if(part.texture != undefined){
+        arrays.textCoord = { data: part.textCoord, numComponents: 2 };
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, part.texture);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     } else {
-        uniforms.u_color = part.color;
+        var transparentPixel = new Uint8Array([0, 0, 0, 0]);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel);
     }
 
     if(model.drawMode === 'elements'){

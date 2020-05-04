@@ -15,7 +15,7 @@ var scale = [1,1,1];
 
 var gfxSettings = 'high';
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
-var pointLightPosition = [0.0, 5.0, 0.0 ]; //Posizione punto luce
+var pointLightPosition = [0.0, 5.0, -10.0 ]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
@@ -172,13 +172,15 @@ function loadMesh(filename) {
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting){
+    const bodyColor = [1, 0.5, 0, 1];
+    const wheelColor = [0.1, 0.1, 0.1, 1];
     loadMesh('./assets/camaro_body_'+setting+'.obj').then( (data) => {
         let body = loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
-        body.color = [0.1, 0.8, 0.1, 1];
+        body.color = bodyColor;
         body.shininess = 100;
         vCar.parts[0] = body;
-        vCar.drawMode = 'arrays'; 
+        vCar.drawMode = 'arrays';
         if(!vCar.loaded){
             //Avvia la renderizzazione della scena
             vCar.loaded = true; 
@@ -189,7 +191,7 @@ function loadCar(setting){
     });
     loadMesh('./assets/camaro_wheel_'+setting+'.obj').then( (data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
-        wheel.color = [0.1, 0.1, 0.1, 1];
+        wheel.color = wheelColor;
         wheel.shininess = 1000;
         for(let i = 1; i<5; i++){
             vCar.parts[i] = {...wheel};
@@ -198,6 +200,18 @@ function loadCar(setting){
         vCar.parts[2].type = CAR_PARTS.WHEEL_REAR_L;
         vCar.parts[3].type = CAR_PARTS.WHEEL_FRONT_R;
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
+    });
+    loadMesh('./assets/camaro_doors_'+setting+'.obj').then( (data) => {
+        let body = loadObj(data); //Carica vertices e normal da file OBJ
+        body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
+        body.color = bodyColor;
+        body.shininess = 100;
+        vCar.parts[5] = body;
+        var texImage = new Image();
+        texImage.src = './assets/lee-number.png';
+        texImage.addEventListener('load', () =>{
+            vCar.parts[5].texture = texImage;
+        });         
     });
 }
 
@@ -215,7 +229,7 @@ $(document).ready(function() {
                     vertices : cubeMesh.vertices,
                     normals : cubeMesh.normals,
                     textCoord : cubeMesh.textCoord,
-                    color: [0.3,0.3,0.3,1],
+                    color: [0.3,1,0.3,1],
                     shininess: 100,
                 }
             ],
