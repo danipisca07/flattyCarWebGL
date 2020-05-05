@@ -9,3 +9,14 @@
     border: solid 1px black;
     padding: 5px;
 }
+#loading{
+    position: fixed;
+    display: none;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+    font-size: xx-large;
+    background: white;
+    border: solid 2px black;
+    padding: 5px;
+}

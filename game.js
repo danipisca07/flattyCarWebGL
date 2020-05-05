@@ -216,7 +216,7 @@ function loadObj(content){
 function loadMesh(filename) {
     return $.ajax({
         url: filename,
-        dataType: 'text'
+        dataType: 'text',
     }).fail(function() {
         alert('File [' + filename + "] non trovato!");
     });
@@ -224,6 +224,7 @@ function loadMesh(filename) {
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting){
+    document.getElementById('loading').style.display = "block";
     vCar.worldMatrix = m4.translation(0, 0.28,0);
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
@@ -240,6 +241,7 @@ function loadCar(setting){
             
             //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
         }
+        document.getElementById('loading').style.display = "none";
     });
     loadMesh('./assets/camaro_wheel_'+setting+'.obj').then( (data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
