@@ -168,17 +168,13 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
         u_color : part.color,
     }
-    
-    //TODO: muovere creazione texture dentro creazione buffer, lasciare qui solo il bind
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+        
     if(part.textCoord != undefined && part.texture != undefined){
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, part.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        //gl.generateMipmap(gl.TEXTURE_2D);
+        gl.enableVertexAttribArray(texcoordLocation);
+        gl.bindTexture(gl.TEXTURE_2D, part.texture);
     } else {
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
         var transparentPixel = new Uint8Array([0, 0, 0, 0]); 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); //Imposto la texture di default ad un pixel trasparente
         var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
@@ -251,4 +247,15 @@ function createBuffers(gl, part){
         bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
         part.bufferInfoWF = bufferInfo;
     }
+}
+
+function createTexture(gl, part, texImage){
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, texImage);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    part.texture = texture;
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }

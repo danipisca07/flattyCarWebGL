@@ -76,7 +76,7 @@ $(document).ready(function() {
         var texImage = new Image();
         texImage.src = './assets/f-tex.png';
         texImage.addEventListener('load', () =>{
-            cube.parts[0].texture = texImage;
+            createTexture(gl, cube.parts[0], texImage);
             sceneObjects.push(cube);
         });
     });
@@ -267,7 +267,7 @@ function loadCar(setting){
         var texImage = new Image();
         texImage.src = './assets/lee-number.png';
         texImage.addEventListener('load', () =>{
-            vCar.parts[5].texture = texImage;
+            createTexture(gl, vCar.parts[5], texImage);
         });         
     });
 }
