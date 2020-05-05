@@ -142,7 +142,7 @@ function animate() {
 }
 
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
-let lastBufferInfo = null; let arrays; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
+let lastBufferInfo = null; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 //RENDERING OGGETTI MIA LIBRERIA
 function renderElement(gl, model, viewProjectionMatrix, gfxSettings){
     if(gfxSettings === undefined) gfxSettings = this.gfxSettings;
@@ -168,14 +168,11 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         u_worldViewProjection : m4.multiply(viewProjectionMatrix, worldMatrix),
         u_color : part.color,
     }
-    arrays = { 
-        position: { data: part.vertices, numComponents: 3},
-    };
-
+    
+    //TODO: muovere creazione texture dentro creazione buffer, lasciare qui solo il bind
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     if(part.textCoord != undefined && part.texture != undefined){
-        arrays.textCoord = { data: part.textCoord, numComponents: 2 };
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, part.texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -187,47 +184,71 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
         gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
     }
-
-    if(model.drawMode === 'elements'){
-        arrays.indices= { data: part.indices, numComponents: 3,};
-    }
         
     if(gfxSettings === 'high'){
         uniforms.u_ambient = ambientLight;
         uniforms.u_pointLightPosition = pointLightPosition;
         uniforms.u_cameraPosition = cameraSettings.cameraPosition;
         uniforms.u_shininess = part.shininess;
-        arrays.normal = { data: part.normals, numComponents: 3};
     }
-    setUpElementFromArrays(gl, program, arrays, uniforms);
-    
-    if(model.drawMode === 'arrays'){
-        gl.drawArrays(gl.TRIANGLES, 0, part.vertices.length/3);
-    }else if(model.drawMode === 'elements'){
-        gl.drawElements(gl.TRIANGLES, part.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    //setUpElementFromArrays(gl, program, arrays, uniforms);
+    if(part.bufferInfo === undefined) createBuffers(gl,part); //Se i buffer non sono ancora stati caricati lo faccio subito
+    if(part.bufferInfo != lastBufferInfo){
+        lastBufferInfo = part.bufferInfo;
+        let attributeSetters = webglUtils.createAttributeSetters(gl,program);
+        webglUtils.setBuffersAndAttributes(gl, attributeSetters, part.bufferInfo);
+    }
+    let uniformSetters = webglUtils.createUniformSetters(gl,program);
+    webglUtils.setUniforms(uniformSetters, uniforms);
+
+    if(part.nIndices === undefined){
+        gl.drawArrays(gl.TRIANGLES, 0, part.nVertices/3);
+    } else {
+        gl.drawElements(gl.TRIANGLES, part.nIndices, gl.UNSIGNED_SHORT, 0);
     }
     
     //WIREFRAME 
-    if(gfxSettings === 'low' && part.indicesWF !== undefined){
+    if(gfxSettings === 'low' && part.bufferInfoWF !== undefined){
+        uniforms.u_color= [0,1,0,1];
+        lastBufferInfo = part.bufferInfoWF;
+        webglUtils.setBuffersAndAttributes(gl, attributeSetters, part.bufferInfoWF);
+        webglUtils.setUniforms(uniformSetters, uniforms);
+        gl.drawElements(gl.LINES, part.nIndicesWF, gl.UNSIGNED_SHORT, 0); 
+    }
+}
+
+function createBuffers(gl, part){
+    let arrays = {
+        position : { data: part.vertices, numComponents: 3},
+    };
+
+    if(part.indices !== undefined){
+        arrays.indices= { data: part.indices, numComponents: 3,};
+        part.nIndices = part.indices.length;
+    } else {
+        part.nVertices = part.vertices.length;
+    }
+
+    if(part.textCoord != undefined){
+        arrays.textCoord = { data: part.textCoord, numComponents: 2 };
+    }
+        
+    if(part.normals != undefined){
+        arrays.normal = { data: part.normals, numComponents: 3};
+    }
+    
+    let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+    part.bufferInfo = bufferInfo;
+
+    //WIREFRAME 
+    if( part.indicesWF !== undefined){
         arrays = {
             position: { data: part.verticesWF, numComponents: 3},
             indices: { data: part.indicesWF, numComponents: 2,},
         }
-        uniforms.u_color= [0,0,0,1];
-        setUpElementFromArrays(gl, program, arrays, uniforms);
-        gl.drawElements(gl.LINES, part.indicesWF.length, gl.UNSIGNED_SHORT, 0); 
+        part.nIndicesWF = part.indicesWF.length;
+        bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+        part.bufferInfoWF = bufferInfo;
     }
-    
-}
-
-function setUpElementFromArrays(gl, program, arrays, uniforms){
-    let uniformSetters = webglUtils.createUniformSetters(gl,program);
-    let attributeSetters = webglUtils.createAttributeSetters(gl,program);
-    let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
-    if(bufferInfo != lastBufferInfo){
-        lastBufferInfo = bufferInfo;
-        webglUtils.setBuffersAndAttributes(gl, attributeSetters, bufferInfo);
-    }
-    
-    webglUtils.setUniforms(uniformSetters, uniforms);
 }

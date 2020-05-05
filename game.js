@@ -47,12 +47,12 @@ $(document).ready(function() {
                     shininess: 1000,
                 }
             ],
-            drawMode : 'arrays',
             worldMatrix : getLocalMatrix(m4.identity(), [1000,1,1000], [0,0,0], [0,0,0] ),
             getPartLocalMatrix : function(partType){
                 return this.worldMatrix;
             },
         };
+        createBuffers(gl, floor.parts[0]);
         sceneObjects.push(floor);
     });
     loadMesh('./assets/texturedCube.obj').then( (data) => {
@@ -67,13 +67,12 @@ $(document).ready(function() {
                     shininess: 100,
                 }
             ],
-            isTextured: true,
-            drawMode : 'arrays',
-            worldMatrix : getLocalMatrix(m4.identity(), [1,1,1], [0,0,degToRad(90)], [0,1,-10] ),
+            worldMatrix : getLocalMatrix(m4.identity(), [1,1,1], [0,0,degToRad(90)], [0,1, -10] ),
             getPartLocalMatrix : function(partType){
                 return this.worldMatrix;
             },
         };
+        createBuffers(gl, cube.parts[0]);
         var texImage = new Image();
         texImage.src = './assets/f-tex.png';
         texImage.addEventListener('load', () =>{
@@ -81,6 +80,7 @@ $(document).ready(function() {
             sceneObjects.push(cube);
         });
     });
+    startAnimating(60, drawScene);//Avvia la renderizzazione della scena
 });
 
 // Metodo di rendering
@@ -233,12 +233,12 @@ function loadCar(setting){
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = bodyColor;
         body.shininess = 100;
+        createBuffers(gl, body);
         vCar.parts[0] = body;
-        vCar.drawMode = 'arrays';
         if(!vCar.loaded){
             sceneObjects.push(vCar);
             vCar.loaded = true; 
-            startAnimating(60, drawScene);//Avvia la renderizzazione della scena
+            
             //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
         }
     });
@@ -246,6 +246,7 @@ function loadCar(setting){
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = wheelColor;
         wheel.shininess = 1000;
+        createBuffers(gl, wheel);
         for(let i = 1; i<5; i++){
             vCar.parts[i] = {...wheel};
         }
@@ -253,14 +254,16 @@ function loadCar(setting){
         vCar.parts[2].type = CAR_PARTS.WHEEL_REAR_L;
         vCar.parts[3].type = CAR_PARTS.WHEEL_FRONT_R;
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
+
     });
     setting = 'low';
     loadMesh('./assets/camaro_doors_'+setting+'.obj').then( (data) => {
-        let body = loadObj(data); //Carica vertices e normal da file OBJ
-        body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
-        body.color = bodyColor;
-        body.shininess = 100;
-        vCar.parts[5] = body;
+        let doors = loadObj(data); //Carica vertices e normal da file OBJ
+        doors.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
+        doors.color = bodyColor;
+        doors.shininess = 100;
+        createBuffers(gl,doors);
+        vCar.parts[5] = doors;
         var texImage = new Image();
         texImage.src = './assets/lee-number.png';
         texImage.addEventListener('load', () =>{
