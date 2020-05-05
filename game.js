@@ -30,7 +30,6 @@ var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 $(document).ready(function() {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
-    setupUI();
     
 
     //Caricamento oggetti
