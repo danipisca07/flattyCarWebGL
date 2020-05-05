@@ -30,7 +30,6 @@ var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 $(document).ready(function() {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
-    
 
     //Caricamento oggetti
     loadCar('low');
@@ -150,6 +149,32 @@ function doKeyUp(e){
             break;
         case KEYS.D_CODE:
             key[KEYS.D]=false;
+            break;
+    }
+}
+function toggleOnScreenControls(event){
+    var controls = document.getElementById("onScreenControls");
+    if(event.currentTarget.checked){
+        controls.style.display ="block";
+    } else {
+        controls.style.display ="none";
+    }
+}
+
+function eventBtn(btn, type){
+    console.log(type);
+    switch(btn){
+        case 'up':
+            key[KEYS.W]=type;
+            break;
+        case 'down':
+            key[KEYS.S]=type;
+            break;
+        case 'left':
+            key[KEYS.A]=type;
+            break;
+        case 'right':
+            key[KEYS.D]=type;
             break;
     }
 }

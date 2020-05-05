@@ -50,15 +50,29 @@
               <option selected>Terza persona</option>
               <option>Dall'alto</option>
             </select>
+            <br/>
+            <label for="onScreenCtrlEnabler">Abilita controlli per touch screen</label>
+            <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler" onchange="toggleOnScreenControls(event)"/>
+            
           </div>
         </div>
         <div id="gameUi">
           <p id="loading">Loading...</p>
+          <div id="onScreenControls">
+            <div id="controlsLeft">
+              <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)" ontouchend="eventBtn('up', false)"/>
+              <br/>
+              <input type="button" id="downBtn" value="↓" ontouchstart="eventBtn('down',true)" ontouchend="eventBtn('down', false)"/>
+            </div>
+            <div id="controlsRight">
+              <input type="button" id="leftBtn" value="←" ontouchstart="eventBtn('left',true)" ontouchend="eventBtn('left', false)"/>
+              <input type="button" id="rightBtn" value="→"  ontouchstart="eventBtn('right',true)" ontouchend="eventBtn('right', false)"/>
+            </div>
+          </div>
         </div>
         <script type="text/javascript" src="./game.js"></script>
 
         <!-- TODO: 
-        Input touch
         (opz) trasparenze/riflessione/ombre con on/off
         -->
 
