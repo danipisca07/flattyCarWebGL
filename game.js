@@ -29,7 +29,7 @@ var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
-var targetMesh;
+var targetData; //Oggetto dove salverò i dati dell'oggetto bersaglio in modo da non doverlo ricaricare più volte
 var newTargetMaxDistance = 10;
 
 //Funzione di inizializzazione
@@ -42,15 +42,26 @@ $(document).ready(function () {
     loadFloor();
     loadCube();
     loader.loadMesh('./assets/target.obj').then((data) => {
-        targetMesh = loader.loadObj(data);
+        let targetMesh = loader.loadObj(data);
+        targetData = {
+            vertices: targetMesh.vertices,
+            normals: targetMesh.normals,
+            textCoord: targetMesh.textCoord,
+            color: [0, 0, 0, 1],
+            shininess: 100,
+        }
+        loader.loadTexture(gl, targetData, './assets/target.jpg');
+        createBuffers(gl, targetData);
     });
     startAnimating(60, drawScene);//Avvia la renderizzazione della scena
 });
 
+//Avvia il gioco
 function start(){
     document.getElementById("startGame").style.display = 'none';
     cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
     document.getElementById("cameraMode").disabled = false;
+    //Abilita gli eventi di input
     window.addEventListener('keydown', doKeyDown, true);
     window.addEventListener('keyup', doKeyUp, true);
     generateNewTarget(); //Genera un nuovo target in una posizione casuale
@@ -102,7 +113,8 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
-    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings);
+    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings); //Mantengo la macchina fuori dalla lista degli oggetti di scena
+                                        // modo da poterla renderizzare sempre per ultima (ordine per la trasparenza del vetro)
 }
 
 /*
@@ -111,47 +123,43 @@ function drawScene(elapsed) {
 //
 */
 
+//Genera un nuovo oggetto bersaglio automaticamente in una posizione casuale 
+//(in una distanza limitata dalla posizione attuale del giocatore)
 function generateNewTarget() {
     let startPos = [vCar.px, 0, vCar.pz];
-    if (!vCar.loaded) startPos = [0, 0, 0];
+    //Calcolo una posizione casuale
     startPos[0] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
     startPos[2] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
     var target = {
         parts: [
-            {
-                vertices: targetMesh.vertices,
-                normals: targetMesh.normals,
-                textCoord: targetMesh.textCoord,
-                color: [0, 0, 0, 1],
-                shininess: 100,
-            }
+            targetData //Utilizzo la mesh precaricata (con buffers e texture)
         ],
         position: startPos,
         hit: false,
         getPartLocalMatrix: function (partType) {
             if (!this.hit) {
                 let dist = m4.length(m4.subtractVectors(this.position, [vCar.px, vCar.py, vCar.pz]));
-                if (dist < 0.75) {
+                if (dist < 0.75) { //Distanza dalla macchina minima per essere colpito
                     this.hit = true;
+                    //Calcolo la nuova worldMatrix, con il bersaglio schiacciato a terra, che rimarra invariata d'ora in poi
                     let newPos = [startPos[0], startPos[1] - 0.1, startPos[2]];
                     let matrix = m4.lookAt(newPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
                     matrix = m4.scale(matrix, 0.5, 0.5, 0.5);
                     matrix = m4.xRotate(matrix, degToRad(45));
-                    this.worldMatrix = matrix;
-                    generateNewTarget();
+                    this.worldMatrix = matrix; //Salvo la worldMatrix in modo da non doverla ricaricare più
+                    generateNewTarget(); //Genero il prossimo bersaglio
                 }
             }
-            if (this.worldMatrix !== undefined) {
+            if (this.worldMatrix !== undefined) { //Se ho già caricato la worldMatrix finale significa che son già stato colpito
                 return this.worldMatrix;
             }
 
+            //Se non sono stato colpito seguo ("guardo") la macchina
             let matrix = m4.lookAt(startPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
             matrix = m4.scale(matrix, 0.5, 0.5, 0.5);
             return matrix;
         },
     };
-    loader.loadTexture(gl, target.parts[0], './assets/target.jpg');
-    createBuffers(gl, target.parts[0]);
     sceneObjects.push(target);
 }
 
@@ -162,7 +170,7 @@ function loadCar(setting) {
     vCar.parts = new Array();
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
-    loader.loadMesh('./assets/'+folder+'/body.obj').then((data) => {
+    loader.loadMesh('./assets/'+folder+'/body.obj').then((data) => { //Carrozzeria
         let body = loader.loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = bodyColor;
@@ -177,7 +185,7 @@ function loadCar(setting) {
         }
         document.getElementById('loading').style.display = "none";
     });
-    loader.loadMesh('./assets/'+folder+'/wheel.obj').then((data) => {
+    loader.loadMesh('./assets/'+folder+'/wheel.obj').then((data) => { //Ruote
         let wheel = loader.loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = wheelColor;
         wheel.shininess = 1000;
@@ -191,7 +199,7 @@ function loadCar(setting) {
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
 
     });
-    loader.loadMesh('./assets/'+folder+'/doors.obj').then((data) => {
+    loader.loadMesh('./assets/'+folder+'/doors.obj').then((data) => { //Sportelli
         let doors = loader.loadObj(data); //Carica vertices e normal da file OBJ
         doors.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         doors.color = bodyColor;
@@ -200,7 +208,7 @@ function loadCar(setting) {
         loader.loadTexture(gl, doors, './assets/lee-number.png');
         vCar.parts[5] = doors;
     });
-    loader.loadMesh('./assets/driver.obj').then((data) => {
+    loader.loadMesh('./assets/driver.obj').then((data) => { //Pilota
         let driver = loader.loadObj(data); //Carica vertices e normal da file OBJ
         driver.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         driver.color = [0,0,0,1];
@@ -208,7 +216,7 @@ function loadCar(setting) {
         createBuffers(gl, driver);
         vCar.parts[6] = driver;
     });
-    loader.loadMesh('./assets/'+folder+'/details.obj').then((data) => {
+    loader.loadMesh('./assets/'+folder+'/details.obj').then((data) => { //Particolari carrozzeria
         let details = loader.loadObj(data); //Carica vertices e normal da file OBJ
         details.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         details.color = [0.7,0.7,0.7,1];
@@ -216,7 +224,7 @@ function loadCar(setting) {
         createBuffers(gl, details);
         vCar.parts[7] = details;
     });
-    loader.loadMesh('./assets/'+folder+'/glass.obj').then((data) => {
+    loader.loadMesh('./assets/'+folder+'/glass.obj').then((data) => { //Vetri
         let glass = loader.loadObj(data); //Carica vertices e normal da file OBJ
         glass.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         glass.color = [0,0,0.2,0.5];
@@ -326,7 +334,6 @@ var loader = {
                 }
             }
         }
-
         return newPart;
     },
 

@@ -28,13 +28,25 @@
     </head>
     <body>
         <h1>Documentazione progetto WebGL</h1>
+        <div id="Struttura">
+            <h3> Intro </h3>
+            <p>
+                Progetto realizzato da Daniele Piscaglia per il corso di Fondamenti di Computer Graphics di Ingegneria Informatica Magistrale.<br/>
+                Per avviare il gioco basta aprire la homepage <a href="../game.html">game.html</a>.<br/> 
+                Il file si trova nella cartella principale, dove si trovano anche le cartelle 
+                <i>doc</i> (contenente informazioni sul progetto),  
+                <i>assets</i> (contenente alcuni file utilizzati dall'applicazione) e la cartella 
+                <i>scripts</i> contentente alcune
+                librerie javascript.
+            </p>
+        </div>
         <div id="scripts">
             <h3>Elenco scripts</h3>
             <p>
                 Per lo sviluppo del progetto sono state utilizzate alcune librerie: (inserite nella cartella scripts)
                 <ul>
                     <li><i>webgl-utils.js:</i>Funzioni di utility boilerplate per webGL (credit: <a href="http://www.webglfundamentals.com">WebGLFundamentals</a>)</li>
-                    <li><i>m4s.js:</i>Funzioni di utility per gestione matrici (credit: <a href="http://www.webglfundamentals.com">WebGLFundamentals</a>)</li>
+                    <li><i>m4.js:</i>Funzioni di utility per gestione matrici (credit: <a href="http://www.webglfundamentals.com">WebGLFundamentals</a>)</li>
                     <li><i>glm_light/subdiv/mesh_utils/jquery.js:</i>Per lettura e caricamento file .obj</li>
                     <li>...</li>
                 </ul>
@@ -44,6 +56,7 @@
                     <li><i>my-webgl-lib.js:</i>Libreria personale dove sono state raggruppate tutte le funzioni non strettamente collegate alla logica
                          specifica dell'applicazione</li>
                     <li><i>car.js:</i>Oggetto e funzioni di fisica dell' oggetto macchina</li>
+                    <li><i>gamepad.js:</i>Libreria per gestire input da gamepad</li>
                     <li><i>game.js:</i>Contenente tutta la logica applicativa</li>
                     <li><i>game.html</i></li>
                 </ul>
@@ -58,9 +71,9 @@
 var oggetto = {
     parts : [  //Array contenente tutte le parti(componenti) dell' oggetto
         {
-            type:               //Tipo dell'oggetto (es. Carrozzeria, RuotaAnterioreSX ecc...)
-            vertices:           //Array contenente i vertici delle facce
-            normals:            //Array contenente le normali delli corrispondenti vertici
+            [type:]             //Tipo dell'oggetto (es. Carrozzeria, RuotaAnterioreSX ecc...) 
+            bufferInfo:         //Dati relativi ai buffer (vertici, normali, textCoord, ecc..), anche ottenibile tramite la funzione utility createBuffers
+            [texture:]          //Elemento texture (già precaricato), anche ottenibile tramite la funzione utility createTexture
             color:              //Colore della parte
             shininess:          //Componente per la luce speculare (lucidità) dell'oggetto
         },
@@ -68,8 +81,8 @@ var oggetto = {
     ],
 
     //Data una matrice di manipolazione globale fornisce la matrice di manipolazione locale per il tipo di oggetto specificato nel secondo parametro
-    getPartLocalMatrix : function(manipolazioneGlobale, tipoParte) {
-        <i>return mat4</i>
+    getPartLocalMatrix : function(tipoParte) {
+        <i>return mat4</i> //Per gli oggetti composti da più parti tramite il parametro <i>tipoParte</i> è possibile ottenere la matrice di manipolazione della parte specifica
     }
 }
             </pre>
@@ -82,16 +95,17 @@ var oggetto = {
                 <ul>
                     <li>Caricare gli shader</li>
                     <li>Calcolare le matrici di manipolazione locali di ogni oggetto</li>
-                    <li>Caricare e impostate buffer per atrtibutes e uniforms webGL</li>
-                    <li>Effettuare il rendering secondo il metodo corretto (<i>drawElements/drawArrays</i>)</li>
+                    <li>Impostare i buffer per attributes e uniforms webGL</li>
+                    <li>Effettuare il rendering tramite la <i>gl.drawArrays</i></li>
                 </ul>
                 Sequenza di chiamate in pseudocodice:
                 <pre>
 renderElement{
     foreach part:
         renderPart:
-            setUpElementFromArrays:
-                //Setup buffers
+            calcolo uniforms
+            setBuffers
+            setUniforms
             gl.drawElements / gl.drawArrays
 }
                 </pre>
@@ -109,13 +123,13 @@ renderElement{
                 <ul>
                     <li>Array vertices contenente la lista dei vertici nell'ordine definito dalle facce</li>
                     <li>Array normals contenente la lista delle normali nell'ordine definito dalle facce</li>
+                    <li>(Se presenti) Array texCoords contenente la lista delle coordinate UV nell'ordine definito dalle facce</li>
                 </ul>
-                Per poter ottenere le normali è stata apportata una piccola modifica alla libreria glm_light nel metodo SecondPass
-                restituento l'array contenente le normali come proprietà dell'oggetto mesh:
-                <pre>mesh.normals = model.normals;</pre> 
-                Per quanto riguarda l'ordinamento dei vertici ci si è basati sul meccanismo di definizione delle faccie nei file
-                .obj che segue la specifica TRIANGLE_FAN (<a href="https://en.wikipedia.org/wiki/Triangle_fan">TRIANGLE_FAN</a>)
-                secondo cui una faccia composta di più elementi viene scomposta in facce triangolari:
+                Per poter ottenere le normali e le coordinate UV sono state neccessarie alcune modifiche alla libreria glm_light nel metodo SecondPass.
+                Una volta ricevuti i dati "raw" dalla funzione loadObj della glm_light quindi si scompongono le varie facce.
+                Infatti per quanto riguarda l'ordinamento dei vertici i file .obj seguono la specifica TRIANGLE_FAN 
+                (<a href="https://en.wikipedia.org/wiki/Triangle_fan">TRIANGLE_FAN</a>)
+                secondo cui una faccia composta di più elementi viene scomposta in facce triangolari. Esempio:
                 <pre>
 f 1 2 3 4 --> (1 2 3) (1 3 4)
 f 8 7 6 5 --> (8 7 6) (8 6 5)
@@ -123,7 +137,23 @@ f 4 3 7 8 --> (4 3 7) (4 7 8)
 f 5 1 4 8 --> (5 1 4) (5 4 8)
 f 5 6 2 1 --> (5 6 2) (5 2 1)
 f 2 6 7 3 --> (2 6 7) (2 7 3) </pre>
-                
+                Per l'ordinamento di normali e coordinate UV si segue lo stesso principio.
+
+                Quindi una volta che i dati (vertices, normals e texCoord) sono stati caricati dal file obj si può direttamente utilizzare la funzione
+                di utility createBuffers per creare e associare i buffers webGL.   
+                Queste funzioni per il caricamento di nuove mesh da obj è stato racchiuso all'interno dell'oggetto loader (specificato in <i>game.js</i>)
+                assieme a una funzione di utility per il caricamento delle texture e una funzione asincrona con jQuery ajax per il caricamento dei file da disco.
+                Catena chiamate in pseudocodice:
+                <pre>
+fileContent = loadMesh(fileSrc)
+mesh = loadObj(fileContent)
+createBuffers(gl, mesh)
+element = { //Vedere specifica organizzione oggetti
+    parts: [ mesh ],
+    ...
+}
+[texture = loadTexture(element, textureSrc)] //Se l'oggetto è texturato
+                </pre>         
             </p>
         </div>
     </body>
