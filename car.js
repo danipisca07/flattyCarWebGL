@@ -11,6 +11,7 @@ const CAR_PARTS = {
     WHEEL_REAR_L: 2,
     WHEEL_FRONT_R: 3,
     WHEEL_FRONT_L: 4,
+    DRIVER: 5,
 }
 
 var vCar = {
@@ -81,6 +82,8 @@ var vCar = {
             return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180 + this.sterzo), 0], [this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
         else if (partType === CAR_PARTS.WHEEL_FRONT_L)
             return getLocalMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
+        else if (partType === CAR_PARTS.DRIVER)
+            return getLocalMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
         else
             return baseMatrix;
     },

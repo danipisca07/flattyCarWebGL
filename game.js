@@ -21,7 +21,7 @@ var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
 var gfxSettings = 'high';
-var alphaBlending = false;
+var alphaBlending = false; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
 
@@ -33,7 +33,7 @@ $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
 
-    //Caricamento oggetti
+    //Caricamento oggetti scena
     loadCar('low');
     loadFloor();
     loadCube();
@@ -199,7 +199,7 @@ function loadMesh(filename) {
         url: filename,
         dataType: 'text',
     }).fail(function () {
-        alert('File [' + filename + "] non trovato!");
+        //alert('File [' + filename + "] non trovato!");
     });
 }
 
@@ -254,10 +254,11 @@ function generateNewTarget() {
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting) {
     document.getElementById('loading').style.display = "block";
+    let folder = "car_"+setting;
     vCar.parts = new Array();
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
-    loadMesh('./assets/camaro_body_' + setting + '.obj').then((data) => {
+    loadMesh('./assets/'+folder+'/body.obj').then((data) => {
         let body = loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = bodyColor;
@@ -272,7 +273,7 @@ function loadCar(setting) {
         }
         document.getElementById('loading').style.display = "none";
     });
-    loadMesh('./assets/camaro_wheel_' + setting + '.obj').then((data) => {
+    loadMesh('./assets/'+folder+'/wheel.obj').then((data) => {
         let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = wheelColor;
         wheel.shininess = 1000;
@@ -286,8 +287,7 @@ function loadCar(setting) {
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
 
     });
-    setting = 'low';
-    loadMesh('./assets/camaro_doors_' + setting + '.obj').then((data) => {
+    loadMesh('./assets/'+folder+'/doors.obj').then((data) => {
         let doors = loadObj(data); //Carica vertices e normal da file OBJ
         doors.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         doors.color = bodyColor;
@@ -300,13 +300,29 @@ function loadCar(setting) {
             createTexture(gl, vCar.parts[5], texImage);
         });
     });
-    loadMesh('./assets/camaro_glass_' + setting + '.obj').then((data) => {
+    loadMesh('./assets/driver.obj').then((data) => {
+        let driver = loadObj(data); //Carica vertices e normal da file OBJ
+        driver.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
+        driver.color = [0,0,0,1];
+        driver.shininess = 10;
+        createBuffers(gl, driver);
+        vCar.parts[6] = driver;
+    });
+    loadMesh('./assets/'+folder+'/details.obj').then((data) => {
+        let details = loadObj(data); //Carica vertices e normal da file OBJ
+        details.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
+        details.color = [0.7,0.7,0.7,1];
+        details.shininess = 50;
+        createBuffers(gl, details);
+        vCar.parts[7] = details;
+    });
+    loadMesh('./assets/'+folder+'/glass.obj').then((data) => {
         let glass = loadObj(data); //Carica vertices e normal da file OBJ
         glass.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         glass.color = [0,0,0.2,0.5];
         glass.shininess = 10;
         createBuffers(gl, glass);
-        vCar.parts[6] = glass;
+        vCar.parts[8] = glass;
     });
 }
 
