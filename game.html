@@ -1,80 +1,91 @@
 <html>
-    <head>
-        <style>
-            @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
-            body {
-            margin: 0;
-            }
-            canvas {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            }
-        </style>
-        <!-- Librerie di utility-->
-        <script type="text/javascript" src="../scripts/webgl-utils.js"></script>
-        <script type="text/javascript" src="../scripts/m4.js"></script>
 
-        <!-- Caricamento OBJ-->
-        <script src="../scripts/subdiv.js"></script>
-        <script src="../scripts/mesh_utils.js"></script>
-        <script src="../scripts/glm_light.js"></script>
-        <script type="text/javascript" src="../scripts/jquery-3.5.0.js"></script>
+<head>
+  <style>
+    @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
 
-        <!-- Script personali -->
-        <script type="text/javascript" src="./shaders.js"></script>
-        <script type="text/javascript" src="./car.js"></script>
-        <script type="text/javascript" src="./my-webgl-lib.js"></script>
-        <script type="text/javascript" src="./gamepad.js"></script>
+    body {
+      margin: 0;
+    }
 
-        <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
-        <div id="controlPanel">
-          <b>Pannello di controllo</b>
-          <div id="gfxSettings">
-            <label for="gfxSettings">Qualità grafica:</label> 
-            <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
-              <option>low</option>  
-              <option selected>high</option>
-            </select><br/>
-            <label for="carQuality">Qualità modello macchina:</label> 
-            <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
-              <option selected>low</option>  
-              <option>high</option>
-            </select><br/>
-            <label for="cameraMode">Camera:</label> 
-            <select id="cameraMode" name="cameraMode" onchange="changeCameraHandler(event)">
-              <option>Prima persona</option>  
-              <option selected>Terza persona</option>
-              <option>Dall'alto</option>
-            </select>
-            <br/>
-            <label for="onScreenCtrlEnabler">Abilita controlli per touch screen</label>
-            <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler" onchange="toggleOnScreenControls(event)"/>
-            
-          </div>
-        </div>
-        <div id="gameUi">
-          <p id="loading">Loading...</p>
-          <div id="onScreenControls">
-            <div id="controlsLeft">
-              <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)" ontouchend="eventBtn('up', false)"/>
-              <br/>
-              <input type="button" id="downBtn" value="↓" ontouchstart="eventBtn('down',true)" ontouchend="eventBtn('down', false)"/>
-            </div>
-            <div id="controlsRight">
-              <input type="button" id="leftBtn" value="←" ontouchstart="eventBtn('left',true)" ontouchend="eventBtn('left', false)"/>
-              <input type="button" id="rightBtn" value="→"  ontouchstart="eventBtn('right',true)" ontouchend="eventBtn('right', false)"/>
-            </div>
-          </div>
-        </div>
-        <script type="text/javascript" src="./game.js"></script>
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+  <!-- Librerie di utility-->
+  <script type="text/javascript" src="../scripts/webgl-utils.js"></script>
+  <script type="text/javascript" src="../scripts/m4.js"></script>
 
-        <!-- TODO: 
+  <!-- Caricamento OBJ-->
+  <script src="../scripts/subdiv.js"></script>
+  <script src="../scripts/mesh_utils.js"></script>
+  <script src="../scripts/glm_light.js"></script>
+  <script type="text/javascript" src="../scripts/jquery-3.5.0.js"></script>
+
+  <!-- Script personali -->
+  <script type="text/javascript" src="./shaders.js"></script>
+  <script type="text/javascript" src="./car.js"></script>
+  <script type="text/javascript" src="./my-webgl-lib.js"></script>
+  <script type="text/javascript" src="./gamepad.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="controlPanel">
+    <b>Pannello di controllo</b>
+    <div id="gfxSettings">
+      <label for="gfxSettings">Qualità grafica:</label>
+      <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
+        <option>low</option>
+        <option selected>high</option>
+      </select><br />
+      <label for="carQuality">Qualità modello macchina:</label>
+      <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
+        <option selected>low</option>
+        <option>high</option>
+      </select><br />
+      <label for="cameraMode">Camera:</label>
+      <select id="cameraMode" name="cameraMode" onchange="changeCameraHandler(event)">
+        <option>Prima persona</option>
+        <option selected>Terza persona</option>
+        <option>Dall'alto</option>
+      </select>
+      <br />
+      <label for="onScreenCtrlEnabler">Abilita controlli per touch screen</label>
+      <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler"
+        onchange="toggleOnScreenControls(event)" />
+
+    </div>
+  </div>
+  <div id="gameUi">
+    <p id="loading">Loading...</p>
+    <div id="onScreenControls">
+      <div id="controlsLeft">
+        <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)"
+          ontouchend="eventBtn('up', false)" />
+        <br />
+        <input type="button" id="downBtn" value="↓" ontouchstart="eventBtn('down',true)"
+          ontouchend="eventBtn('down', false)" />
+      </div>
+      <div id="controlsRight">
+        <input type="button" id="leftBtn" value="←" ontouchstart="eventBtn('left',true)"
+          ontouchend="eventBtn('left', false)" />
+        <input type="button" id="rightBtn" value="→" ontouchstart="eventBtn('right',true)"
+          ontouchend="eventBtn('right', false)" />
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="./game.js"></script>
+
+  <!-- TODO: 
         (opz) trasparenze/riflessione/ombre con on/off
+        ? movimento su superficie parametrica
         -->
 
 </body>
+
 </html>

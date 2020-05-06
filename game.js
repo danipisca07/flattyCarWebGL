@@ -26,57 +26,19 @@ var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
-
+var targetMesh;
+var newTargetMaxDistance = 10;
 $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
 
     //Caricamento oggetti
     loadCar('low');
-    loadMesh('./assets/floor.obj').then((data) => {
-        let floorMesh = loadObj(data);
-        var floor = {
-            parts: [
-                {
-                    vertices: floorMesh.vertices,
-                    normals: floorMesh.normals,
-                    textCoord: floorMesh.textCoord,
-                    color: [0.3, 0.3, 0.3, 1],
-                    shininess: 1000,
-                }
-            ],
-            worldMatrix: getLocalMatrix(m4.identity(), [1000, 1, 1000], [0, 0, 0], [0, 0, 0]),
-            getPartLocalMatrix: function (partType) {
-                return this.worldMatrix;
-            },
-        };
-        createBuffers(gl, floor.parts[0]);
-        sceneObjects.push(floor);
-    });
-    loadMesh('./assets/texturedCube.obj').then((data) => {
-        let cubeMesh = loadObj(data);
-        var cube = {
-            parts: [
-                {
-                    vertices: cubeMesh.vertices,
-                    normals: cubeMesh.normals,
-                    textCoord: cubeMesh.textCoord,
-                    color: [0.3, 1, 0.3, 1],
-                    shininess: 100,
-                }
-            ],
-            worldMatrix: getLocalMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], [0, 1, -10]),
-            getPartLocalMatrix: function (partType) {
-                return this.worldMatrix;
-            },
-        };
-        createBuffers(gl, cube.parts[0]);
-        var texImage = new Image();
-        texImage.src = './assets/f-tex.png';
-        texImage.addEventListener('load', () => {
-            createTexture(gl, cube.parts[0], texImage);
-            sceneObjects.push(cube);
-        });
+    loadFloor();
+    loadCube();
+    loadMesh('./assets/target.obj').then((data) => {
+        targetMesh = loadObj(data);
+        generateNewTarget();
     });
     startAnimating(60, drawScene);//Avvia la renderizzazione della scena
 });
@@ -233,6 +195,54 @@ function loadMesh(filename) {
     });
 }
 
+function generateNewTarget() {
+    let startPos = [vCar.px, 0, vCar.pz];
+    if (!vCar.loaded) startPos = [0, 0, 0];
+    startPos[0] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
+    startPos[2] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
+    var target = {
+        parts: [
+            {
+                vertices: targetMesh.vertices,
+                normals: targetMesh.normals,
+                textCoord: targetMesh.textCoord,
+                color: [0, 0, 0, 1],
+                shininess: 100,
+            }
+        ],
+        position: startPos,
+        hit: false,
+        getPartLocalMatrix: function (partType) {
+            if (!this.hit) {
+                let dist = m4.length(m4.subtractVectors(this.position, [vCar.px, vCar.py, vCar.pz]));
+                if (dist < 1.75) {
+                    this.hit = true;
+                    let newPos = [startPos[0], startPos[1] - 0.1, startPos[2]];
+                    let matrix = m4.lookAt(newPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
+                    matrix = m4.scale(matrix, 0.5, 0.5, 0.5);
+                    matrix = m4.xRotate(matrix, degToRad(45));
+                    this.worldMatrix = matrix;
+                    generateNewTarget();
+                }
+            }
+            if (this.worldMatrix !== undefined) {
+                return this.worldMatrix;
+            }
+
+            let matrix = m4.lookAt(startPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
+            matrix = m4.scale(matrix, 0.5, 0.5, 0.5);
+            return matrix;
+        },
+    };
+    createBuffers(gl, target.parts[0]);
+    var texImage = new Image();
+    texImage.src = './assets/target.jpg';
+    texImage.addEventListener('load', () => {
+        createTexture(gl, target.parts[0], texImage);
+        sceneObjects.push(target);
+    });
+}
+
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting) {
     document.getElementById('loading').style.display = "block";
@@ -283,6 +293,59 @@ function loadCar(setting) {
         });
     });
 }
+
+function loadFloor() {
+    loadMesh('./assets/floor.obj').then((data) => {
+        let floorMesh = loadObj(data);
+        var floor = {
+            parts: [
+                {
+                    vertices: floorMesh.vertices,
+                    normals: floorMesh.normals,
+                    textCoord: floorMesh.textCoord,
+                    color: [0.3, 0.3, 0.3, 1],
+                    shininess: 1000,
+                }
+            ],
+            worldMatrix: getLocalMatrix(m4.identity(), [1000, 1, 1000], [0, 0, 0], [0, 0, 0]),
+            getPartLocalMatrix: function (partType) {
+                return this.worldMatrix;
+            },
+        };
+        createBuffers(gl, floor.parts[0]);
+        sceneObjects.push(floor);
+    });
+}
+
+
+function loadCube() {
+    loadMesh('./assets/texturedCube.obj').then((data) => {
+        let cubeMesh = loadObj(data);
+        var cube = {
+            parts: [
+                {
+                    vertices: cubeMesh.vertices,
+                    normals: cubeMesh.normals,
+                    textCoord: cubeMesh.textCoord,
+                    color: [0, 0, 0, 1],
+                    shininess: 10000,
+                }
+            ],
+            worldMatrix: getLocalMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], [0, 1, -10]),
+            getPartLocalMatrix: function (partType) {
+                return this.worldMatrix;
+            },
+        };
+        createBuffers(gl, cube.parts[0]);
+        var texImage = new Image();
+        texImage.src = './assets/f-tex.png';
+        texImage.addEventListener('load', () => {
+            createTexture(gl, cube.parts[0], texImage);
+            sceneObjects.push(cube);
+        });
+    });
+}
+
 
 function changeCameraHandler(e) {
     key = [false, false, false, false];

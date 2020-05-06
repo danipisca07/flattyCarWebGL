@@ -16,8 +16,8 @@ const CAR_PARTS = {
 var vCar = {
     //Funzione contenente la fisica del movimento della macchina. Richiamarla ogni volta che si deve aggiornare la sua posizione
     //keyPressed: Array [bool, bool, bool, bool] dove ogni posizione indica se il rispettivo tasto è stato premuto
-    doStep: (keyPressed, opt_target) => {
-        let vCar = opt_target === undefined ? this.vCar : opt_target;
+    doStep: (keyPressed) => {
+        let vCar = this.vCar;
         //let vCar = this;
         // computiamo l'evolversi della macchina
         var vxm, vym, vzm; // velocita' in spazio macchina
@@ -94,7 +94,7 @@ var vCar = {
     //Settings fisici
     velSterzo: 3.4,
     velRitornoSterzo: 0.93,
-    accMax: 0.008, //Accelerazione
+    accMax: 0.006, //Accelerazione
     attritoZ: 0.991, //Velocità massima
     attritoX: 0.8,
     attritoY: 1.0,

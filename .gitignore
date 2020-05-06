@@ -1,5 +1,6 @@
 .vscode/*
 .idea/*
+scripts/OLD/*
 
 assets/dev/*
 
