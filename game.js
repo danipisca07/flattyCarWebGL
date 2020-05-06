@@ -1,13 +1,14 @@
 "use strict";
 
 var CAMERA_MODE = {
+    MENU: -1,
     FIRST_PERSON: 0,
     THIRD_PERSON: 1,
     FROM_TOP: 2,
 }
 
 var cameraSettings = {
-    cameraMode: CAMERA_MODE.THIRD_PERSON,
+    cameraMode: CAMERA_MODE.MENU,
     cameraPosition: [0, 0, 0],
     cameraRotation: [0, 0, 0],
     lookUpVector: [0, 1, 0],
@@ -16,12 +17,13 @@ var cameraSettings = {
     zFar: 2000,
 }
 
+var key = [false, false, false, false]; //Vedi car.js per i codici tasti
 var translation = [0, 0, 0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
 var gfxSettings = 'high';
-var alphaBlending = false; // On/Off trasparenze
+var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
 
@@ -29,6 +31,8 @@ var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 var targetMesh;
 var newTargetMaxDistance = 10;
+
+//Funzione di inizializzazione
 $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
@@ -37,12 +41,20 @@ $(document).ready(function () {
     loadCar('low');
     loadFloor();
     loadCube();
-    loadMesh('./assets/target.obj').then((data) => {
-        targetMesh = loadObj(data);
-        generateNewTarget();
+    loader.loadMesh('./assets/target.obj').then((data) => {
+        targetMesh = loader.loadObj(data);
     });
     startAnimating(60, drawScene);//Avvia la renderizzazione della scena
 });
+
+function start(){
+    document.getElementById("startGame").style.display = 'none';
+    cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
+    document.getElementById("cameraMode").disabled = false;
+    window.addEventListener('keydown', doKeyDown, true);
+    window.addEventListener('keyup', doKeyUp, true);
+    generateNewTarget(); //Genera un nuovo target in una posizione casuale
+}
 
 // Metodo di rendering
 function drawScene(elapsed) {
@@ -60,6 +72,12 @@ function drawScene(elapsed) {
     
     let viewProjectionMatrix;
     switch (cameraSettings.cameraMode) {
+        case (CAMERA_MODE.MENU):
+            /* Visuale menu principale */
+            cameraSettings.lookAtTarget = [vCar.px, 0.5, vCar.pz];
+            cameraSettings.cameraPosition = [-1, 1, -2]; //Posizione della camera relativa all'oggetto che sta seguendo
+            viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
+            break;
         case (CAMERA_MODE.FIRST_PERSON):
             /* Visuale prima persona */
             cameraSettings.cameraRotation = [0, degToRad(vCar.facing), 0]; //Orientazione della camera (stessa della macchina)
@@ -77,7 +95,7 @@ function drawScene(elapsed) {
         case (CAMERA_MODE.FROM_TOP):
             /* CAMERA AEREA */
             cameraSettings.lookAtTarget = [vCar.px, vCar.py, vCar.pz], //Obbiettivo a cui la camera deve puntare
-                cameraSettings.cameraPosition = [vCar.px, vCar.py + 7, vCar.pz + 7]; //Posizione della camera
+            cameraSettings.cameraPosition = [vCar.px, vCar.py + 7, vCar.pz + 7]; //Posizione della camera
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     }
@@ -87,121 +105,11 @@ function drawScene(elapsed) {
     renderElement(gl, vCar, viewProjectionMatrix, gfxSettings);
 }
 
-var key = [false, false, false, false]; //Vedi car.js per i codici tasti
-window.addEventListener('keydown', doKeyDown, true);
-function doKeyDown(e) {
-    switch (e.keyCode) {
-        case KEYS.W_CODE:
-            key[KEYS.W] = true;
-            break;
-        case KEYS.A_CODE:
-            key[KEYS.A] = true;
-            break;
-        case KEYS.S_CODE:
-            key[KEYS.S] = true;
-            break;
-        case KEYS.D_CODE:
-            key[KEYS.D] = true;
-            break;
-    }
-}
-window.addEventListener('keyup', doKeyUp, true);
-function doKeyUp(e) {
-    switch (e.keyCode) {
-        case KEYS.W_CODE:
-            key[KEYS.W] = false;
-            break;
-        case KEYS.A_CODE:
-            key[KEYS.A] = false;
-            break;
-        case KEYS.S_CODE:
-            key[KEYS.S] = false;
-            break;
-        case KEYS.D_CODE:
-            key[KEYS.D] = false;
-            break;
-    }
-}
-function toggleOnScreenControls(event) {
-    var controls = document.getElementById("onScreenControls");
-    if (event.currentTarget.checked) {
-        controls.style.display = "block";
-    } else {
-        controls.style.display = "none";
-    }
-}
-
-function eventBtn(btn, type) {
-    console.log(type);
-    switch (btn) {
-        case 'up':
-            key[KEYS.W] = type;
-            break;
-        case 'down':
-            key[KEYS.S] = type;
-            break;
-        case 'left':
-            key[KEYS.A] = type;
-            break;
-        case 'right':
-            key[KEYS.D] = type;
-            break;
-    }
-}
-
-//Caricamento .obj
-function loadObj(content) {
-    let newPart = new Object(); //La parte che rappresenta l'oggetto letto dal file .obj
-    let mesh = new Object();
-    mesh = ReadOBJ(content, mesh);
-    newPart.vertices = new Array();
-    if (mesh.texCoord != null)
-        newPart.textCoord = new Array();
-    newPart.normals = new Array();
-
-    //Ciclo su ogni faccia e compongo gli array vertices e normals in base all'ordine delle facce
-    for (let i = 0; i < mesh.nface; i++) { //Per ogni faccia
-        let face = mesh.face[i + 1];
-        let nIndices = 0; //Numero di indici nella faccia
-        while (face.vert[nIndices] > 0) nIndices++;
-        //Nei file OBJ le facce vengono indicate tramite la specifica TRIANGLE_FAN quindi ciclo con
-        // una finestra scorrevole di dimensione 3. In questo modo mantengo la compatibilità anche
-        // con file OBJ che specificato facce non triangolari
-        for (let j = 0; j < nIndices - 2; j++) {
-            try {
-                //Aggiungo i vertici della faccia
-                newPart.vertices.push(mesh.vert[face.vert[0]].x, mesh.vert[face.vert[0]].y, mesh.vert[face.vert[0]].z);
-                newPart.vertices.push(mesh.vert[face.vert[j + 1]].x, mesh.vert[face.vert[j + 1]].y, mesh.vert[face.vert[j + 1]].z);
-                newPart.vertices.push(mesh.vert[face.vert[j + 2]].x, mesh.vert[face.vert[j + 2]].y, mesh.vert[face.vert[j + 2]].z);
-                if (mesh.texCoord != null) {
-                    //Aggiungo coordinate texture
-                    newPart.textCoord.push(mesh.texCoord[(face.tcor[0] - 1) * 2], mesh.texCoord[(face.tcor[0] - 1) * 2 + 1]);
-                    newPart.textCoord.push(mesh.texCoord[(face.tcor[j + 1] - 1) * 2], mesh.texCoord[(face.tcor[j + 1] - 1) * 2 + 1]);
-                    newPart.textCoord.push(mesh.texCoord[(face.tcor[j + 2] - 1) * 2], mesh.texCoord[(face.tcor[j + 2] - 1) * 2 + 1]);
-                }
-                //Aggiungo le normali della faccia
-                newPart.normals.push(mesh.normals[(face.norm[0] - 1) * 3], mesh.normals[(face.norm[0] - 1) * 3 + 1], mesh.normals[(face.norm[0] - 1) * 3 + 2]);
-                newPart.normals.push(mesh.normals[(face.norm[j + 1] - 1) * 3], mesh.normals[(face.norm[j + 1] - 1) * 3 + 1], mesh.normals[(face.norm[j + 1] - 1) * 3 + 2]);
-                newPart.normals.push(mesh.normals[(face.norm[j + 2] - 1) * 3], mesh.normals[(face.norm[j + 2] - 1) * 3 + 1], mesh.normals[(face.norm[j + 2] - 1) * 3 + 2]);
-            }
-            catch (e) {
-                console.log(e);
-            }
-        }
-    }
-
-    return newPart;
-}
-
-//Caricamento asincrono di una mesh da file obj. Restituisce una promise 
-function loadMesh(filename) {
-    return $.ajax({
-        url: filename,
-        dataType: 'text',
-    }).fail(function () {
-        //alert('File [' + filename + "] non trovato!");
-    });
-}
+/*
+//
+//          CARICAMENTO OGGETTI IN SCENA
+//
+*/
 
 function generateNewTarget() {
     let startPos = [vCar.px, 0, vCar.pz];
@@ -242,13 +150,9 @@ function generateNewTarget() {
             return matrix;
         },
     };
+    loader.loadTexture(gl, target.parts[0], './assets/target.jpg');
     createBuffers(gl, target.parts[0]);
-    var texImage = new Image();
-    texImage.src = './assets/target.jpg';
-    texImage.addEventListener('load', () => {
-        createTexture(gl, target.parts[0], texImage);
-        sceneObjects.push(target);
-    });
+    sceneObjects.push(target);
 }
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
@@ -258,8 +162,8 @@ function loadCar(setting) {
     vCar.parts = new Array();
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
-    loadMesh('./assets/'+folder+'/body.obj').then((data) => {
-        let body = loadObj(data); //Carica vertices e normal da file OBJ
+    loader.loadMesh('./assets/'+folder+'/body.obj').then((data) => {
+        let body = loader.loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = bodyColor;
         body.shininess = 100;
@@ -273,8 +177,8 @@ function loadCar(setting) {
         }
         document.getElementById('loading').style.display = "none";
     });
-    loadMesh('./assets/'+folder+'/wheel.obj').then((data) => {
-        let wheel = loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
+    loader.loadMesh('./assets/'+folder+'/wheel.obj').then((data) => {
+        let wheel = loader.loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = wheelColor;
         wheel.shininess = 1000;
         createBuffers(gl, wheel);
@@ -287,37 +191,33 @@ function loadCar(setting) {
         vCar.parts[4].type = CAR_PARTS.WHEEL_FRONT_L;
 
     });
-    loadMesh('./assets/'+folder+'/doors.obj').then((data) => {
-        let doors = loadObj(data); //Carica vertices e normal da file OBJ
+    loader.loadMesh('./assets/'+folder+'/doors.obj').then((data) => {
+        let doors = loader.loadObj(data); //Carica vertices e normal da file OBJ
         doors.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         doors.color = bodyColor;
         doors.shininess = 100;
         createBuffers(gl, doors);
+        loader.loadTexture(gl, doors, './assets/lee-number.png');
         vCar.parts[5] = doors;
-        var texImage = new Image();
-        texImage.src = './assets/lee-number.png';
-        texImage.addEventListener('load', () => {
-            createTexture(gl, vCar.parts[5], texImage);
-        });
     });
-    loadMesh('./assets/driver.obj').then((data) => {
-        let driver = loadObj(data); //Carica vertices e normal da file OBJ
+    loader.loadMesh('./assets/driver.obj').then((data) => {
+        let driver = loader.loadObj(data); //Carica vertices e normal da file OBJ
         driver.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         driver.color = [0,0,0,1];
         driver.shininess = 10;
         createBuffers(gl, driver);
         vCar.parts[6] = driver;
     });
-    loadMesh('./assets/'+folder+'/details.obj').then((data) => {
-        let details = loadObj(data); //Carica vertices e normal da file OBJ
+    loader.loadMesh('./assets/'+folder+'/details.obj').then((data) => {
+        let details = loader.loadObj(data); //Carica vertices e normal da file OBJ
         details.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         details.color = [0.7,0.7,0.7,1];
         details.shininess = 50;
         createBuffers(gl, details);
         vCar.parts[7] = details;
     });
-    loadMesh('./assets/'+folder+'/glass.obj').then((data) => {
-        let glass = loadObj(data); //Carica vertices e normal da file OBJ
+    loader.loadMesh('./assets/'+folder+'/glass.obj').then((data) => {
+        let glass = loader.loadObj(data); //Carica vertices e normal da file OBJ
         glass.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         glass.color = [0,0,0.2,0.5];
         glass.shininess = 10;
@@ -327,8 +227,8 @@ function loadCar(setting) {
 }
 
 function loadFloor() {
-    loadMesh('./assets/floor.obj').then((data) => {
-        let floorMesh = loadObj(data);
+    loader.loadMesh('./assets/floor.obj').then((data) => {
+        let floorMesh = loader.loadObj(data);
         var floor = {
             parts: [
                 {
@@ -351,8 +251,8 @@ function loadFloor() {
 
 
 function loadCube() {
-    loadMesh('./assets/texturedCube.obj').then((data) => {
-        let cubeMesh = loadObj(data);
+    loader.loadMesh('./assets/texturedCube.obj').then((data) => {
+        let cubeMesh = loader.loadObj(data);
         var cube = {
             parts: [
                 {
@@ -369,20 +269,146 @@ function loadCube() {
             },
         };
         createBuffers(gl, cube.parts[0]);
-        var texImage = new Image();
-        texImage.src = './assets/f-tex.png';
-        texImage.addEventListener('load', () => {
-            createTexture(gl, cube.parts[0], texImage);
-            sceneObjects.push(cube);
-        });
+        loader.loadTexture(gl, cube.parts[0], './assets/f-tex.png');
+        sceneObjects.push(cube);
     });
 }
 
+var loader = {
+
+    //Caricamento asincrono di una mesh da file obj. Restituisce una promise 
+    loadMesh : function (filename) {
+        return $.ajax({
+            url: filename,
+            dataType: 'text',
+        }).fail(function () {
+            //alert('File [' + filename + "] non trovato!");
+        });
+    },
+
+    //Caricamento .obj
+    loadObj : function (content) {
+        let newPart = new Object(); //La parte che rappresenta l'oggetto letto dal file .obj
+        let mesh = new Object();
+        mesh = ReadOBJ(content, mesh);
+        newPart.vertices = new Array();
+        if (mesh.texCoord != null)
+            newPart.textCoord = new Array();
+        newPart.normals = new Array();
+
+        //Ciclo su ogni faccia e compongo gli array vertices e normals in base all'ordine delle facce
+        for (let i = 0; i < mesh.nface; i++) { //Per ogni faccia
+            let face = mesh.face[i + 1];
+            let nIndices = 0; //Numero di indici nella faccia
+            while (face.vert[nIndices] > 0) nIndices++;
+            //Nei file OBJ le facce vengono indicate tramite la specifica TRIANGLE_FAN quindi ciclo con
+            // una finestra scorrevole di dimensione 3. In questo modo mantengo la compatibilità anche
+            // con file OBJ che specificato facce non triangolari
+            for (let j = 0; j < nIndices - 2; j++) {
+                try {
+                    //Aggiungo i vertici della faccia
+                    newPart.vertices.push(mesh.vert[face.vert[0]].x, mesh.vert[face.vert[0]].y, mesh.vert[face.vert[0]].z);
+                    newPart.vertices.push(mesh.vert[face.vert[j + 1]].x, mesh.vert[face.vert[j + 1]].y, mesh.vert[face.vert[j + 1]].z);
+                    newPart.vertices.push(mesh.vert[face.vert[j + 2]].x, mesh.vert[face.vert[j + 2]].y, mesh.vert[face.vert[j + 2]].z);
+                    if (mesh.texCoord != null) {
+                        //Aggiungo coordinate texture
+                        newPart.textCoord.push(mesh.texCoord[(face.tcor[0] - 1) * 2], mesh.texCoord[(face.tcor[0] - 1) * 2 + 1]);
+                        newPart.textCoord.push(mesh.texCoord[(face.tcor[j + 1] - 1) * 2], mesh.texCoord[(face.tcor[j + 1] - 1) * 2 + 1]);
+                        newPart.textCoord.push(mesh.texCoord[(face.tcor[j + 2] - 1) * 2], mesh.texCoord[(face.tcor[j + 2] - 1) * 2 + 1]);
+                    }
+                    //Aggiungo le normali della faccia
+                    newPart.normals.push(mesh.normals[(face.norm[0] - 1) * 3], mesh.normals[(face.norm[0] - 1) * 3 + 1], mesh.normals[(face.norm[0] - 1) * 3 + 2]);
+                    newPart.normals.push(mesh.normals[(face.norm[j + 1] - 1) * 3], mesh.normals[(face.norm[j + 1] - 1) * 3 + 1], mesh.normals[(face.norm[j + 1] - 1) * 3 + 2]);
+                    newPart.normals.push(mesh.normals[(face.norm[j + 2] - 1) * 3], mesh.normals[(face.norm[j + 2] - 1) * 3 + 1], mesh.normals[(face.norm[j + 2] - 1) * 3 + 2]);
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+
+        return newPart;
+    },
+
+    loadTexture : function (gl, target, textureSrc) {
+        let texImage = new Image();
+        texImage.src = textureSrc;
+        texImage.addEventListener('load', () => {
+            createTexture(gl, target, texImage);
+        });
+    }
+}
+
+/*
+//
+//          GESTIONE INPUT E INTERFACCIA
+//
+*/
+
+function doKeyDown(e) {
+    switch (e.keyCode) {
+        case KEYS.W_CODE:
+            key[KEYS.W] = true;
+            break;
+        case KEYS.A_CODE:
+            key[KEYS.A] = true;
+            break;
+        case KEYS.S_CODE:
+            key[KEYS.S] = true;
+            break;
+        case KEYS.D_CODE:
+            key[KEYS.D] = true;
+            break;
+    }
+}
+
+function doKeyUp(e) {
+    switch (e.keyCode) {
+        case KEYS.W_CODE:
+            key[KEYS.W] = false;
+            break;
+        case KEYS.A_CODE:
+            key[KEYS.A] = false;
+            break;
+        case KEYS.S_CODE:
+            key[KEYS.S] = false;
+            break;
+        case KEYS.D_CODE:
+            key[KEYS.D] = false;
+            break;
+    }
+}
+
+function toggleOnScreenControls(event) {
+    var controls = document.getElementById("onScreenControls");
+    if (event.currentTarget.checked) {
+        controls.style.display = "block";
+    } else {
+        controls.style.display = "none";
+    }
+}
+
+function eventBtn(btn, type) {
+    console.log(type);
+    switch (btn) {
+        case 'up':
+            key[KEYS.W] = type;
+            break;
+        case 'down':
+            key[KEYS.S] = type;
+            break;
+        case 'left':
+            key[KEYS.A] = type;
+            break;
+        case 'right':
+            key[KEYS.D] = type;
+            break;
+    }
+}
 
 function changeCameraHandler(e) {
     key = [false, false, false, false];
     cameraSettings.cameraMode = event.target.selectedIndex;
 }
-
 
 
