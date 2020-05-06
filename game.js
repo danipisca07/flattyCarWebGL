@@ -21,6 +21,7 @@ var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
 var gfxSettings = 'high';
+var alphaBlending = false;
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
 
@@ -50,7 +51,13 @@ function drawScene(elapsed) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-
+    if(alphaBlending){
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+    } else{
+        gl.disable(gl.BLEND);
+    }
+    
     let viewProjectionMatrix;
     switch (cameraSettings.cameraMode) {
         case (CAMERA_MODE.FIRST_PERSON):
@@ -77,6 +84,7 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
+    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings);
 }
 
 var key = [false, false, false, false]; //Vedi car.js per i codici tasti
@@ -215,7 +223,7 @@ function generateNewTarget() {
         getPartLocalMatrix: function (partType) {
             if (!this.hit) {
                 let dist = m4.length(m4.subtractVectors(this.position, [vCar.px, vCar.py, vCar.pz]));
-                if (dist < 1.75) {
+                if (dist < 0.75) {
                     this.hit = true;
                     let newPos = [startPos[0], startPos[1] - 0.1, startPos[2]];
                     let matrix = m4.lookAt(newPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
@@ -257,7 +265,7 @@ function loadCar(setting) {
         createBuffers(gl, body);
         vCar.parts[0] = body;
         if (!vCar.loaded) {
-            sceneObjects.push(vCar);
+            //sceneObjects.push(vCar);
             vCar.loaded = true;
 
             //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
@@ -291,6 +299,14 @@ function loadCar(setting) {
         texImage.addEventListener('load', () => {
             createTexture(gl, vCar.parts[5], texImage);
         });
+    });
+    loadMesh('./assets/camaro_glass_' + setting + '.obj').then((data) => {
+        let glass = loadObj(data); //Carica vertices e normal da file OBJ
+        glass.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
+        glass.color = [0,0,0.2,0.5];
+        glass.shininess = 10;
+        createBuffers(gl, glass);
+        vCar.parts[6] = glass;
     });
 }
 

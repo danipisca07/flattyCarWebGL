@@ -2,7 +2,6 @@
 
 <head>
   <style>
-    @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
 
     body {
       margin: 0;
@@ -55,9 +54,10 @@
         <option>Dall'alto</option>
       </select>
       <br />
+      <label for="alphaEnabler">Abilita trasparenza</label>
+      <input type="checkbox" id="alphaEnabler" name="alphaEnabler" onchange="alphaBlending=!alphaBlending" /> <br/>
       <label for="onScreenCtrlEnabler">Abilita controlli per touch screen</label>
-      <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler"
-        onchange="toggleOnScreenControls(event)" />
+      <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler" onchange="toggleOnScreenControls(event)" />
 
     </div>
   </div>

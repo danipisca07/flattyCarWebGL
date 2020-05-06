@@ -68,12 +68,13 @@ var shaderScripts = {
             
             vec4 tex = texture2D(u_texture, v_textCoord);
             gl_FragColor = tex + u_color * (1.-tex.a);
+            //gl_FragColor = u_color;
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight;
 
             //DEBUG
             //gl_FragColor = vec4(normal, 1.0);
-            float val = pointLight;
+            float val = gl_FragColor.w;
             //gl_FragColor = vec4(val, val, val, 1.0);
         }`,
     }
