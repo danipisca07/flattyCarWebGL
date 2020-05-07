@@ -30,9 +30,7 @@ function main() {
     return alert('need WEBGL_depth_texture');  // eslint-disable-line
   }
 
-  // setup GLSL programs
-  const textureProgramInfo = webglUtils.createProgramInfo(gl, ['3d-vertex-shader', '3d-fragment-shader']);
-  const colorProgramInfo = webglUtils.createProgramInfo(gl, ['color-vertex-shader', 'color-fragment-shader']);
+  
 
   const sphereBufferInfo = primitives.createSphereBufferInfo(
       gl,
@@ -117,12 +115,6 @@ function main() {
     u_texture: checkerboardTexture,
     u_world: m4.translation(2, 3, 4),
   };
-  const cubeUniforms = {
-    u_colorMult: [0.5, 1, 0.5, 1],  // lightgreen
-    u_color: [0, 0, 1, 1],
-    u_texture: checkerboardTexture,
-    u_world: m4.translation(3, 1, 0),
-  };
 
   function drawScene(
       projectionMatrix,
@@ -183,6 +175,7 @@ function main() {
     gl.enable(gl.DEPTH_TEST);
 
     // first draw from the POV of the light
+    const colorProgramInfo = webglUtils.createProgramInfo(gl, ['color-vertex-shader', 'color-fragment-shader']);
     const lightWorldMatrix = m4.lookAt(
         [settings.posX, settings.posY, settings.posZ],          // position
         [settings.targetX, settings.targetY, settings.targetZ], // target
@@ -215,6 +208,7 @@ function main() {
         colorProgramInfo);
 
     // now draw scene to the canvas projecting the depth texture into the scene
+    const textureProgramInfo = webglUtils.createProgramInfo(gl, ['3d-vertex-shader', '3d-fragment-shader']);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0, 0, 0, 1);
