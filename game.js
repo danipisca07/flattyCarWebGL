@@ -36,6 +36,7 @@ var newTargetMaxDistance = 10;
 $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
+    gl.clearColor(0, 0, 1, 0.2);
 
     //Caricamento oggetti scena
     loadCar('low');
@@ -62,8 +63,8 @@ function start(){
     cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
     document.getElementById("cameraMode").disabled = false;
     //Abilita gli eventi di input
-    window.addEventListener('keydown', doKeyDown, true);
-    window.addEventListener('keyup', doKeyUp, true);
+    window.addEventListener('keydown', handleKey);
+    window.addEventListener('keyup', handleKey);
     generateNewTarget(); //Genera un nuovo target in una posizione casuale
 }
 
@@ -112,9 +113,10 @@ function drawScene(elapsed) {
     }
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
     renderElement(gl, vCar, viewProjectionMatrix, gfxSettings); //Mantengo la macchina fuori dalla lista degli oggetti di scena
                                         // modo da poterla renderizzare sempre per ultima (ordine per la trasparenza del vetro)
+    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
+    
 }
 
 /*
@@ -244,14 +246,15 @@ function loadFloor() {
                     normals: floorMesh.normals,
                     textCoord: floorMesh.textCoord,
                     color: [0.3, 0.3, 0.3, 1],
-                    shininess: 1000,
+                    shininess: 100000000000,
                 }
             ],
-            worldMatrix: getModelMatrix(m4.identity(), [1000, 1, 1000], [0, 0, 0], [0, 0, 0]),
+            worldMatrix: getModelMatrix(m4.identity(), [100, 1, 100], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
         };
+        loader.loadTexture(gl, floor.parts[0], './assets/asphalt.jpg', true);
         createBuffers(gl, floor.parts[0]);
         sceneObjects.push(floor);
     });
@@ -337,11 +340,12 @@ var loader = {
         return newPart;
     },
 
-    loadTexture : function (gl, target, textureSrc) {
+    loadTexture : function (gl, target, textureSrc, generateMipmap) {
+        generateMipmap = generateMipmap === undefined ? false : generateMipmap;
         let texImage = new Image();
         texImage.src = textureSrc;
         texImage.addEventListener('load', () => {
-            createTexture(gl, target, texImage);
+            createTexture(gl, target, texImage, generateMipmap);
         });
     }
 }
@@ -352,19 +356,28 @@ var loader = {
 //
 */
 
-function doKeyDown(e) {
+function handleKey(e) {
+    let pressed;
+    if(e.type === 'keydown'){
+        pressed = true;
+    } else if(e.type=== 'keyup'){
+        pressed=false;
+    }
     switch (e.keyCode) {
         case KEYS.W_CODE:
-            key[KEYS.W] = true;
+            key[KEYS.W] = pressed;
             break;
         case KEYS.A_CODE:
-            key[KEYS.A] = true;
+            key[KEYS.A] = pressed;
             break;
         case KEYS.S_CODE:
-            key[KEYS.S] = true;
+            key[KEYS.S] = pressed;
             break;
         case KEYS.D_CODE:
-            key[KEYS.D] = true;
+            key[KEYS.D] = pressed;
+            break;
+        case KEYS.SPACE_CODE:
+            key[KEYS.SPACE] = pressed;
             break;
     }
 }

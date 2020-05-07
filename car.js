@@ -3,6 +3,7 @@ const KEYS = {
     A: 1, A_CODE: 65,
     S: 2, S_CODE: 83,
     D: 3, D_CODE: 68,
+    SPACE: 4, SPACE_CODE: 32,
 }
 
 const CAR_PARTS = {
@@ -31,11 +32,16 @@ var vCar = {
         vzm = +sinf * vCar.vx + cosf * vCar.vz;
 
         // gestione dello sterzo
-        if (keyPressed[KEYS.A]) vCar.sterzo += vCar.velSterzo;
-        if (keyPressed[KEYS.D]) vCar.sterzo -= vCar.velSterzo;
+        let addizioneSterzo = vCar.velSterzo;
+        if(keyPressed[KEYS.SPACE])
+            addizioneSterzo *= Math.abs(vCar.derapata*vzm);
+        if (keyPressed[KEYS.A]) vCar.sterzo += addizioneSterzo;
+        if (keyPressed[KEYS.D]) vCar.sterzo -= addizioneSterzo;
         vCar.sterzo *= vCar.velRitornoSterzo; // ritorno a volante fermo
 
-        if (keyPressed[KEYS.W]) vzm -= vCar.accMax; // accelerazione in avanti
+        if (keyPressed[KEYS.SPACE] && vzm<0) 
+            vzm += (vCar.accMax * vCar.grip); //Freno a mano
+        else if (keyPressed[KEYS.W]) vzm -= vCar.accMax; // accelerazione in avanti
         if (keyPressed[KEYS.S]) vzm += vCar.accMax; // accelerazione indietro
 
         // attriti (semplificando)
@@ -65,11 +71,12 @@ var vCar = {
         vCar.pz += vCar.vz;
     },
 
-    worldMatrix: m4.translation(0, 0.28, 0),
+    worldMatrix: m4.translation(0, 0.28, 0), //Offset di posizionamento sull'asfalto
 
     //Restituisce le modelMatrix di ognuna delle parti che compongono la macchina per poter
     // passare direttamente alla renderizzazione di ognuna
     getPartLocalMatrix: function (partType) {
+        let sterzoRuote = Math.min(Math.max(parseInt(this.sterzo), -45), 45); //Max rotazione fisica delle ruote 
         let baseMatrix = getModelMatrix(this.worldMatrix, [1, 1, 1], [0, degToRad(this.facing), 0], [this.px, this.py, this.pz]);
         //baseMatrix*S*R*T
         if (partType === CAR_PARTS.BODY)
@@ -79,9 +86,9 @@ var vCar = {
         else if (partType === CAR_PARTS.WHEEL_REAR_L)
             return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-this.larghezzaAsse, this.raggioRuotaP - 0.28, this.posizioneAsseP]);
         else if (partType === CAR_PARTS.WHEEL_FRONT_R)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180 + this.sterzo), 0], [this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
+            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180 + sterzoRuote), 0], [this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
         else if (partType === CAR_PARTS.WHEEL_FRONT_L)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(this.sterzo), 0], [-this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
+            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(sterzoRuote), 0], [-this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
         else if (partType === CAR_PARTS.DRIVER)
             return getModelMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
         else
@@ -99,9 +106,10 @@ var vCar = {
     velRitornoSterzo: 0.93,
     accMax: 0.006, //Accelerazione
     attritoZ: 0.991, //Velocità massima
-    attritoX: 0.8,
+    attritoX: 0.80, //0.8 realistico, 0.9 drift
     attritoY: 1.0,
-    grip: 0.075, //Grip sterzo
+    grip: 0.100, //Grip sterzo (0.075 realistico)
+    derapata: 10, //Fattore derapata 
 
     //Model Settings
     carlingaScale: [0.3, 0.3, 0.3], //Scala dimensione modello carrozzeria macchina
