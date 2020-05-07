@@ -43,7 +43,7 @@ function getManipulationMatrix(matrix, scale, rotation, translation) {
 
 //Funzione per ottere la matrice di manipolazione di una parte di un oggetto rispetto alla worldMatrix dell' oggetto radice, 
 // solitamente chiamata LocalMatrix, quindi applica le trasformazioni nell'ordine matrix*S*R*T
-function getLocalMatrix(matrix, scale, rotation, translation) {
+function getModelMatrix(matrix, scale, rotation, translation) {
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     matrix = m4.zRotate(matrix, rotation[2]);
     matrix = m4.yRotate(matrix, rotation[1]);

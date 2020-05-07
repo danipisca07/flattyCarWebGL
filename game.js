@@ -247,7 +247,7 @@ function loadFloor() {
                     shininess: 1000,
                 }
             ],
-            worldMatrix: getLocalMatrix(m4.identity(), [1000, 1, 1000], [0, 0, 0], [0, 0, 0]),
+            worldMatrix: getModelMatrix(m4.identity(), [1000, 1, 1000], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
@@ -271,7 +271,7 @@ function loadCube() {
                     shininess: 10000,
                 }
             ],
-            worldMatrix: getLocalMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], [0, 1, -10]),
+            worldMatrix: getModelMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], [0, 1, -10]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },

@@ -125,7 +125,18 @@ renderElement{
                     <li>Array normals contenente la lista delle normali nell'ordine definito dalle facce</li>
                     <li>(Se presenti) Array texCoords contenente la lista delle coordinate UV nell'ordine definito dalle facce</li>
                 </ul>
-                Per poter ottenere le normali e le coordinate UV sono state neccessarie alcune modifiche alla libreria glm_light nel metodo SecondPass.
+                Per poter ottenere le normali e le coordinate UV sono state neccessarie alcune modifiche alla libreria glm_light nel metodo SecondPass:
+                <pre>
+539     function SecondPass(model, data, mesh) {   
+...                
+685         mesh.face[numtriangles].norm[jj]=model.triangles[numtriangles-1].nindices[jj]; //AGGIUNTA per indici normali
+686         if(mesh.face[numtriangles].tcor != undefined)
+687             mesh.face[numtriangles].tcor[jj]=model.triangles[numtriangles-1].tindices[jj]; //AGGIUNTA per coordinate texture
+...
+702 	    mesh.texCoord = texcoords; //Restituisco anche le coordinate texture
+703         mesh.normals = normals; //Restituisco anche le normali 
+704         return mesh;
+                </pre>
                 Una volta ricevuti i dati "raw" dalla funzione loadObj della glm_light quindi si scompongono le varie facce.
                 Infatti per quanto riguarda l'ordinamento dei vertici i file .obj seguono la specifica TRIANGLE_FAN 
                 (<a href="https://en.wikipedia.org/wiki/Triangle_fan">TRIANGLE_FAN</a>)
