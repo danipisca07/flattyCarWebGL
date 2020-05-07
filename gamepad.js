@@ -72,6 +72,12 @@ function gamepadPolling() {
         else if(lastButtons[mappings.RIGHT] || lastAxes[mappings.LEFT_STICK_X]>stickThreshold)
             key[KEYS.D] = false;
 
+        //Freno a mano con tasto A
+        if(buttonsPressed[mappings.A])
+            key[KEYS.SPACE] = true;
+        else if(lastButtons[mappings.A])
+            key[KEYS.SPACE] = false;
+
         lastButtons = buttonsPressed;
         lastAxes = axes;
     }

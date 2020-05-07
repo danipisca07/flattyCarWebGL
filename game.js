@@ -357,44 +357,27 @@ var loader = {
 */
 
 function handleKey(e) {
-    let pressed;
+    let pressing;
     if(e.type === 'keydown'){
-        pressed = true;
+        pressing = true;
     } else if(e.type=== 'keyup'){
-        pressed=false;
+        pressing=false;
     }
     switch (e.keyCode) {
         case KEYS.W_CODE:
-            key[KEYS.W] = pressed;
+            key[KEYS.W] = pressing;
             break;
         case KEYS.A_CODE:
-            key[KEYS.A] = pressed;
+            key[KEYS.A] = pressing;
             break;
         case KEYS.S_CODE:
-            key[KEYS.S] = pressed;
+            key[KEYS.S] = pressing;
             break;
         case KEYS.D_CODE:
-            key[KEYS.D] = pressed;
+            key[KEYS.D] = pressing;
             break;
         case KEYS.SPACE_CODE:
-            key[KEYS.SPACE] = pressed;
-            break;
-    }
-}
-
-function doKeyUp(e) {
-    switch (e.keyCode) {
-        case KEYS.W_CODE:
-            key[KEYS.W] = false;
-            break;
-        case KEYS.A_CODE:
-            key[KEYS.A] = false;
-            break;
-        case KEYS.S_CODE:
-            key[KEYS.S] = false;
-            break;
-        case KEYS.D_CODE:
-            key[KEYS.D] = false;
+            key[KEYS.SPACE] = pressing;
             break;
     }
 }
@@ -413,6 +396,9 @@ function eventBtn(btn, type) {
     switch (btn) {
         case 'up':
             key[KEYS.W] = type;
+            break;
+        case 'brake':
+            key[KEYS.SPACE] = type;
             break;
         case 'down':
             key[KEYS.S] = type;
