@@ -131,8 +131,10 @@ function main() {
     // note: any values with no corresponding uniform in the shader
     // are ignored.
     webglUtils.setUniforms(programInfo, {
+    //shader calcolo depth (+ world e color da uniformForEach object)
       u_view: viewMatrix,
       u_projection: projectionMatrix,
+    //altri
       u_bias: settings.bias,
       u_textureMatrix: textureMatrix,
       u_projectedTexture: depthTexture,
