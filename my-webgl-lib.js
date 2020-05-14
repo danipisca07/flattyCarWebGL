@@ -150,7 +150,7 @@ function animate() {
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
 let lastBufferInfo = null; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 
-function renderElement(gl, model, viewProjectionMatrix, gfxSettings, opt_) {
+function renderElement(gl, model, viewProjectionMatrix, gfxSettings) {
     if (gfxSettings === undefined) gfxSettings = this.gfxSettings;
     let shaders = shaderScripts[gfxSettings];
     if (shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
@@ -176,18 +176,21 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         u_projectedTexture: depthTexture,
     }
 
-    //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
-    if (part.textCoord != undefined && part.texture != undefined) {
-        gl.enableVertexAttribArray(texcoordLocation);
-        gl.bindTexture(gl.TEXTURE_2D, part.texture);
-    } else {
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        var transparentPixel = new Uint8Array([0, 0, 0, 0]);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); //Imposto la texture di default ad un pixel trasparente
-        var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
-        gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
+    var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
+    if(texcoordLocation != -1){
+        //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
+        if (part.textCoord != undefined && part.texture != undefined) {
+            gl.enableVertexAttribArray(texcoordLocation);
+            gl.bindTexture(gl.TEXTURE_2D, part.texture);
+        } else {
+            var texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            var transparentPixel = new Uint8Array([0, 0, 0, 0]);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); //Imposto la texture di default ad un pixel trasparente
+            gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
+        }
     }
+    
 
     if (gfxSettings === 'high') { //TODO: Questo check si può cavare, tanto lo fa la libreria
         uniforms.u_ambient = ambientLight;
