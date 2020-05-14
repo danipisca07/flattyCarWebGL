@@ -77,6 +77,26 @@ var shaderScripts = {
             float val = gl_FragColor.w;
             //gl_FragColor = vec4(val, val, val, 1.0);
         }`,
+    },
+    shadowProjection: {
+        vertexShader : `attribute vec4 a_position;
+        attribute vec2 a_textCoord;
+        uniform mat4 u_world; 
+        uniform mat4 u_worldViewProjection; 
+        uniform mat4 u_worldInverseTranspose;
+        varying vec2 v_textCoord;
+        void main(void) { 
+            gl_Position = u_worldViewProjection * a_position;
+            v_textCoord = a_textCoord;
+        }`,
+        fragmentShader : `precision mediump float; 
+        uniform vec4 u_color;
+        uniform sampler2D u_texture;
+        varying vec2 v_textCoord;
+        void main(void) {
+            vec4 tex = texture2D(u_texture, v_textCoord);
+            gl_FragColor = tex + u_color * (1.-tex.a); //oltre alla normale applicazione della texture applico anche la trasparenza nel caso di texture png
+        }`,
     }
 };
 

@@ -1,4 +1,6 @@
+////////////////////
 //FUNZIONI TRIGONOMETRICHE
+////////////////////
 function radToDeg(r) {
     return r * 180 / Math.PI;
 }
@@ -20,7 +22,9 @@ function multiplyVec3Scalar(v, scalar) {
     return new Array(v[0] * scalar, v[1] * scalar, v[2] * scalar);
 }
 
+////////////////////
 //FUNZIONI MATRICI
+////////////////////
 //Funzione per ottere la matrice di manipolazione di un oggetto(anche composto da più parti) nello spazio, 
 // anche chiamata worldMatrix o modelMatrix, quindi applica le trasformazioni nell'ordine matrix*T*R*S
 function getManipulationMatrix(matrix, scale, rotation, translation) {
@@ -119,7 +123,9 @@ function getViewProjectionMatrixFollow(gl, cameraSettings) {
     return viewProjectionMatrix;
 }
 
+////////////////////
 // ANIMAZIONE
+////////////////////
 var fpsInterval, now, then, elapsed;
 let renderFunction;
 function startAnimating(fps, renderFunction) {
@@ -138,10 +144,13 @@ function animate() {
     }
 }
 
+////////////////////
+//RENDERING OGGETTI MIA LIBRERIA
+////////////////////
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
 let lastBufferInfo = null; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
-//RENDERING OGGETTI MIA LIBRERIA
-function renderElement(gl, model, viewProjectionMatrix, gfxSettings) {
+
+function renderElement(gl, model, viewProjectionMatrix, gfxSettings, opt_) {
     if (gfxSettings === undefined) gfxSettings = this.gfxSettings;
     let shaders = shaderScripts[gfxSettings];
     if (shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
@@ -164,8 +173,10 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         u_world: worldMatrix,
         u_worldViewProjection: m4.multiply(viewProjectionMatrix, worldMatrix),
         u_color: part.color,
+        u_projectedTexture: depthTexture,
     }
 
+    //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
     if (part.textCoord != undefined && part.texture != undefined) {
         gl.enableVertexAttribArray(texcoordLocation);
         gl.bindTexture(gl.TEXTURE_2D, part.texture);
@@ -178,7 +189,7 @@ function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings)
         gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
     }
 
-    if (gfxSettings === 'high') {
+    if (gfxSettings === 'high') { //TODO: Questo check si può cavare, tanto lo fa la libreria
         uniforms.u_ambient = ambientLight;
         uniforms.u_pointLightPosition = pointLightPosition;
         uniforms.u_cameraPosition = cameraSettings.cameraPosition;
@@ -240,3 +251,34 @@ function createTexture(gl, part, texImage, generateMipmap) {
     part.texture = texture;
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
+
+////////////////////
+// OMBRE
+////////////////////
+
+var depthTexture = gl.createTexture();
+var depthTextureSize = 512; //Risoluzione ombre
+gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+gl.texImage2D(
+    gl.TEXTURE_2D,      // target
+    0,                  // mip level
+    gl.DEPTH_COMPONENT, // internal format
+    depthTextureSize,   // width
+    depthTextureSize,   // height
+    0,                  // border
+    gl.DEPTH_COMPONENT, // format
+    gl.UNSIGNED_INT,    // type
+    null);              // data
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+ 
+var depthFramebuffer = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,       // target
+    gl.DEPTH_ATTACHMENT,  // attachment point
+    gl.TEXTURE_2D,        // texture target
+    depthTexture,         // texture
+    0);                   // mip level

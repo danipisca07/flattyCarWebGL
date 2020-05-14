@@ -23,6 +23,7 @@ var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
 var gfxSettings = 'high';
+var shadows = true;
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
@@ -70,6 +71,22 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
+    vCar.doStep(key);//Aggiornamento fisica della macchina
+
+    //Calcola ombre
+    if(shadows){
+        let lightWorldMatrix = m4.lookAt(pointLightPosition, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
+        let lightViewMatrix = m4.inverse(lightWorldMatrix);
+        let lightProjectionMatrix = m4.perspective(degToRad(180), 1, 0.5, 20);
+        let lightViewProjectionMatrix = m4.multiply(lightProjectionMatrix, lightViewMatrix);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer); 
+        gl.viewport(0,0,depthTextureSize, depthTextureSize);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        renderElement(gl, vCar, lightViewProjectionMatrix, 'shadowProjection'); 
+        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'shadowProjection'));
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -111,8 +128,8 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     }
-    vCar.doStep(key);//Aggiornamento fisica della macchina
-
+    
+    
     renderElement(gl, vCar, viewProjectionMatrix, gfxSettings); //Mantengo la macchina fuori dalla lista degli oggetti di scena
                                         // modo da poterla renderizzare sempre per ultima (ordine per la trasparenza del vetro)
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
