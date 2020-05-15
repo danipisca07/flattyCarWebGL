@@ -46,6 +46,7 @@ $(document).ready(function () {
     //Caricamento oggetti scena
     loadCar('low');
     loadFloor();
+    loadSkybox();
     loadCube();
     loader.loadMesh('./assets/target.obj').then((data) => {
         let targetMesh = loader.loadObj(data);
@@ -284,6 +285,31 @@ function loadFloor() {
         createBuffers(gl, floor.parts[0]);
         sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
+}
+
+function loadSkybox() {
+    var skybox = {
+        parts: [],
+        worldMatrix: getModelMatrix(m4.identity(), [50, 10, 50], [0, 0, 0], [0, 0, 0]),
+        getPartLocalMatrix: function (partType) {
+            return this.worldMatrix;
+        },
+    };
+    loader.loadMesh('./assets/skybox.obj').then((data) => {
+        let boxMesh = loader.loadObj(data);
+        var box ={
+            vertices: boxMesh.vertices,
+            normals: boxMesh.normals,
+            textCoord: boxMesh.textCoord,
+            color: [0.3, 0.3, 0.3, 1],
+            shininess: 100000000000,
+        }
+        loader.loadTexture(gl, box, './assets/skybox.png', false);
+        createBuffers(gl, box);
+        skybox.parts.push(box);
+        sceneObjects.unshift(skybox); //Aggiungo la box all'inizio della lista degli oggetti dato che non ha trasparenza
+    });
+    
 }
 
 
