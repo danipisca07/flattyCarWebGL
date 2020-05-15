@@ -90,10 +90,14 @@ var shaderScripts = {
 
             float projectedDepth = texture2D(u_depthTexture, projectedTexcoord.xy).r;
             float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.5 : 1.0;
+            light *= shadowLight;
+            if(light < u_ambient) {
+                light = u_ambient;
+            }
             
             gl_FragColor = tex + u_color * (1.-tex.a);
             //gl_FragColor = u_color;
-            gl_FragColor.rgb *= light * shadowLight;
+            gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight * shadowLight;
 
             //DEBUG
