@@ -258,7 +258,7 @@ var transparentTexture, transparentPixel;
 
 function lib_init(){
     depthTexture = gl.createTexture();
-    depthTextureSize = 4096; //Risoluzione ombre
+    depthTextureSize = 8192; //Risoluzione ombre
     gl.bindTexture(gl.TEXTURE_2D, depthTexture);
     gl.texImage2D(
         gl.TEXTURE_2D,      // target
