@@ -42,7 +42,6 @@ $(document).ready(function () {
     if (!ext) {
         return alert('need WEBGL_depth_texture');
     }
-    lib_init();
 
     //Caricamento oggetti scena
     loadCar('low');
@@ -81,6 +80,7 @@ function drawScene(elapsed) {
     gl.enable(gl.DEPTH_TEST);
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
+    /* Rendering delle ombre dinamiche sulla scena */
     let textureMatrix = m4.identity();
     let shadowProjectionSettings = {
         aspectRatio : 1,
@@ -94,13 +94,14 @@ function drawScene(elapsed) {
     textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer); 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre
         sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'low'));
     }
 
+    /* Rendering della scena */
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -141,7 +142,7 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings, textureMatrix));
+    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings, textureMatrix)); //Ciclo di rendering degli oggetti
 }
 
 /*

@@ -164,7 +164,7 @@ function renderElement(gl, element, viewProjectionMatrix, gfxSettings, opt_textu
         u_ambient : ambientLight,
         u_pointLightPosition : pointLightPosition,
         u_cameraPosition : cameraSettings.cameraPosition,
-        u_depthTexture: depthTexture,
+        u_depthTexture: getDepthTexture(),
         u_textureMatrix : textureMatrix,
     }
     let uniformSetters = webglUtils.createUniformSetters(gl, program);
@@ -186,7 +186,7 @@ function renderPart(gl, program, element, part, viewProjectionMatrix) {
 
     var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
     if(texcoordLocation != -1){
-        partUniforms.u_texture = part.texture != undefined ? part.texture : transparentTexture;
+        partUniforms.u_texture = part.texture != undefined ? part.texture : getTransparentTexture();
         //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
         if (part.textCoord != undefined && part.texture != undefined) {
             gl.enableVertexAttribArray(texcoordLocation);
@@ -249,46 +249,60 @@ function createTexture(gl, part, texImage, generateMipmap) {
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
+let transparentTexture;
+function getTransparentTexture(){
+    if(transparentTexture === undefined){
+        transparentTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, transparentTexture);
+        let transparentPixel = new Uint8Array([0, 0, 0, 0]);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); 
+    }
+    return transparentTexture;
+}
+
 ////////////////////
 // OMBRE
 ////////////////////
+const depthTextureSize = 8192; //Risoluzione ombre
+let depthTexture, depthFramebuffer;
 
-let depthTexture, depthTextureSize, depthFramebuffer;
-var transparentTexture, transparentPixel;
-
-function lib_init(){
-    depthTexture = gl.createTexture();
-    depthTextureSize = 8192; //Risoluzione ombre
-    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-    gl.texImage2D(
-        gl.TEXTURE_2D,      // target
-        0,                  // mip level
-        gl.DEPTH_COMPONENT, // internal format
-        depthTextureSize,   // width
-        depthTextureSize,   // height
-        0,                  // border
-        gl.DEPTH_COMPONENT, // format
-        gl.UNSIGNED_INT,    // type
-        null);              // data
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-     
-    depthFramebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,       // target
-        gl.DEPTH_ATTACHMENT,  // attachment point
-        gl.TEXTURE_2D,        // texture target
-        depthTexture,         // texture
-        0);                   // mip level
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    
-    transparentTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, transparentTexture);
-    transparentPixel = new Uint8Array([0, 0, 0, 0]);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); 
+function getDepthTexture(){
+    if(depthTexture === undefined){
+        depthTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,      // target
+            0,                  // mip level
+            gl.DEPTH_COMPONENT, // internal format
+            depthTextureSize,   // width
+            depthTextureSize,   // height
+            0,                  // border
+            gl.DEPTH_COMPONENT, // format
+            gl.UNSIGNED_INT,    // type
+            null);              // data
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+    return depthTexture;
 }
+
+function getDepthFramebuffer(){
+    if(depthFramebuffer === undefined){
+        depthFramebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,       // target
+            gl.DEPTH_ATTACHMENT,  // attachment point
+            gl.TEXTURE_2D,        // texture target
+            getDepthTexture(),         // texture
+            0);                   // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    return depthFramebuffer;
+}
+
+
 
