@@ -98,7 +98,6 @@ function drawScene(elapsed) {
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre
-        renderElement(gl, vCar, lightViewProjectionMatrix, 'low'); 
         sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'low'));
     }
 
@@ -142,10 +141,7 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
-    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings, textureMatrix); //Mantengo la macchina fuori dalla lista degli oggetti di scena
-                                        // modo da poterla renderizzare sempre per ultima (ordine per la trasparenza del vetro)
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings, textureMatrix));
-    
 }
 
 /*
@@ -191,7 +187,7 @@ function generateNewTarget() {
             return matrix;
         },
     };
-    sceneObjects.push(target);
+    sceneObjects.unshift(target); //Aggiungo il bersaglio all'inizio della lista degli oggetti dato che non ha trasparenza
 }
 
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
@@ -209,9 +205,9 @@ function loadCar(setting) {
         createBuffers(gl, body);
         vCar.parts[0] = body;
         if (!vCar.loaded) {
-            //sceneObjects.push(vCar);
+            sceneObjects.push(vCar); //Aggiungo la macchina alla lista degli oggetti di scena, è importante aggiungerla come ultimo elemento
+                                // dell' array in modo che venga renderizzata per ultima in modo da ottenere l'effetto trasparenza per i vetri
             vCar.loaded = true;
-
             //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
         }
         document.getElementById('loading').style.display = "none";
@@ -285,7 +281,7 @@ function loadFloor() {
         };
         loader.loadTexture(gl, floor.parts[0], './assets/asphalt.jpg', true);
         createBuffers(gl, floor.parts[0]);
-        sceneObjects.push(floor);
+        sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
 
@@ -310,7 +306,7 @@ function loadCube() {
         };
         createBuffers(gl, cube.parts[0]);
         loader.loadTexture(gl, cube.parts[0], './assets/f-tex.png');
-        sceneObjects.push(cube);
+        sceneObjects.unshift(cube); //Aggiungo il cubo all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
 
