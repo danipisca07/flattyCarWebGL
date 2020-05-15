@@ -82,14 +82,20 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     let textureMatrix = m4.identity();
-    let lightPosXZ = [pointLightPosition[0], 0 , pointLightPosition[2]];
-    //lightPosXZ[1] = pointLightPosition[1];
-    //lightPosXZ=[0,0,0];
-    lightPosXZ=[vCar.px, vCar.py, vCar.pz];
-    let lightWorldMatrix = m4.lookAt(pointLightPosition, lightPosXZ, cameraSettings.lookUpVector);
-    let lightViewMatrix = m4.inverse(lightWorldMatrix);
-    let lightProjectionMatrix = m4.perspective(degToRad(160), 1, 0.1, 100);
-    let lightViewProjectionMatrix = m4.multiply(lightProjectionMatrix, lightViewMatrix);
+    let centerView = [pointLightPosition[0], 0 , pointLightPosition[2]];
+    //centerView[1] = pointLightPosition[1];
+    //centerView=[0,0,0];
+    centerView=[vCar.px, vCar.py, vCar.pz];
+    let shadowProjectionSettings = {
+        aspectRatio : 1,
+        fieldOfViewRadians : degToRad(160),
+        zNear : 0.1,
+        zFar : 100,
+        cameraPosition : pointLightPosition,
+        lookAtTarget : centerView,
+        lookUpVector : [0, 1, 0],
+    }
+    let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
     textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);

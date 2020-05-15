@@ -57,7 +57,7 @@ function getModelMatrix(matrix, scale, rotation, translation) {
 }
 
 function getProjectionMatrix(gl, cameraSettings) {
-    var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    var aspect = cameraSettings.aspect !== undefined ? cameraSettings.aspect : gl.canvas.clientWidth / gl.canvas.clientHeight;
     var projectionMatrix = m4.perspective(cameraSettings.fieldOfViewRadians, aspect,
         cameraSettings.zNear, cameraSettings.zFar);
     return projectionMatrix;
