@@ -71,7 +71,7 @@ var vCar = {
         vCar.pz += vCar.vz;
     },
 
-    worldMatrix: m4.translation(0, 0.28, 0), //Offset di posizionamento sull'asfalto
+    worldMatrix: m4.translation(0, 0.13, 0), //Offset di posizionamento sull'asfalto
 
     //Restituisce le modelMatrix di ognuna delle parti che compongono la macchina per poter
     // passare direttamente alla renderizzazione di ognuna

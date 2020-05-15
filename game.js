@@ -12,7 +12,7 @@ var cameraSettings = {
     cameraPosition: [0, 0, 0],
     cameraRotation: [0, 0, 0],
     lookUpVector: [0, 1, 0],
-    fieldOfViewRadians: degToRad(48),
+    fieldOfViewRadians: degToRad(60),
     zNear: 0.1,
     zFar: 2000,
 }
@@ -26,7 +26,7 @@ var gfxSettings = 'high';
 var shadows = true;
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
-var pointLightPosition = [10.0, 10.0, 0.0]; //Posizione punto luce
+var pointLightPosition = [0, 10, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
@@ -82,20 +82,15 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     let textureMatrix = m4.identity();
-    let centerView = [pointLightPosition[0], 0 , pointLightPosition[2]];
-    //centerView[1] = pointLightPosition[1];
-    //centerView=[0,0,0];
-    centerView=[vCar.px, vCar.py, vCar.pz];
     let shadowProjectionSettings = {
         aspectRatio : 1,
         fieldOfViewRadians : degToRad(160),
         zNear : 0.1,
         zFar : 100,
         cameraPosition : pointLightPosition,
-        lookAtTarget : centerView,
-        lookUpVector : [0, 1, 0],
+        cameraRotation: [-degToRad(90), 0, 0],
     }
-    let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
+    let lightViewProjectionMatrix = getViewProjectionMatrix(gl, shadowProjectionSettings);
     textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);
@@ -103,7 +98,6 @@ function drawScene(elapsed) {
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre
-        
         renderElement(gl, vCar, lightViewProjectionMatrix, 'low'); 
         sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'low'));
     }
@@ -284,7 +278,7 @@ function loadFloor() {
                     shininess: 100000000000,
                 }
             ],
-            worldMatrix: getModelMatrix(m4.identity(), [100, 1, 100], [0, 0, 0], [0, 0, 0]),
+            worldMatrix: getModelMatrix(m4.identity(), [50, 1, 50], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
