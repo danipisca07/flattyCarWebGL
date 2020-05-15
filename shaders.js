@@ -2,9 +2,7 @@ var shaderScripts = {
     low : {
         vertexShader : `attribute vec4 a_position;
         attribute vec2 a_textCoord;
-        uniform mat4 u_world; 
         uniform mat4 u_worldViewProjection; 
-        uniform mat4 u_worldInverseTranspose;
         varying vec2 v_textCoord;
         void main(void) { 
             gl_Position = u_worldViewProjection * a_position;
@@ -33,6 +31,10 @@ var shaderScripts = {
         varying vec3 v_surfaceToLight;
         varying vec3 v_surfaceToCamera;
 
+        //Shadows
+        uniform mat4 u_textureMatrix;
+        varying vec4 v_projectedTexcoord;
+
         void main() {
             gl_Position = u_worldViewProjection * a_position; //Dovrei farmi dare solo vp e qui fare vp * worldPos
             v_textCoord = a_textCoord;
@@ -41,6 +43,10 @@ var shaderScripts = {
             vec3 surfaceWorldPosition = (u_world * a_position).xyz;
             v_surfaceToLight = u_pointLightPosition - surfaceWorldPosition; //Vettore direzione dalla superficie verso la luce
             v_surfaceToCamera = u_cameraPosition - surfaceWorldPosition; //Vettore direzione dalla superficie verso la camera
+
+            //Shadows
+            vec4 worldPosition = u_world * a_position;
+            v_projectedTexcoord = u_textureMatrix * worldPosition;
         }`,
         fragmentShader: `precision mediump float;
 
@@ -48,9 +54,13 @@ var shaderScripts = {
         uniform float u_shininess;
         uniform vec4 u_color;
         uniform sampler2D u_texture;
-
+        
         varying vec3 v_normal, v_surfaceToLight, v_surfaceToCamera;
         varying vec2 v_textCoord;
+
+        //Shadows
+        uniform sampler2D u_depthTexture;
+        varying vec4 v_projectedTexcoord;
         void main() {
             vec3 normal = normalize(v_normal);
             vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
@@ -67,27 +77,31 @@ var shaderScripts = {
             float light = clamp(totLight/(1.-u_ambient), u_ambient, 1.0); //Mappa nel range u_ambient <-> 1
             
             vec4 tex = texture2D(u_texture, v_textCoord);
+
+            //Shadows
+            vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+            float currentDepth = projectedTexcoord.z - 0.00018;
+
+            bool inRange =
+                projectedTexcoord.x >= 0.0 &&
+                projectedTexcoord.x <= 1.0 &&
+                projectedTexcoord.y >= 0.0 &&
+                projectedTexcoord.y <= 1.0;
+
+            float projectedDepth = texture2D(u_depthTexture, projectedTexcoord.xy).r;
+            float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.5 : 1.0;
+            
             gl_FragColor = tex + u_color * (1.-tex.a);
             //gl_FragColor = u_color;
-            gl_FragColor.rgb *= light;
-            gl_FragColor.rgb += specularLight;
+            gl_FragColor.rgb *= light * shadowLight;
+            gl_FragColor.rgb += specularLight * shadowLight;
 
             //DEBUG
+            //gl_FragColor = vec4(normalize(v_projectedTexcoord.xyz), 1.);
             //gl_FragColor = vec4(normal, 1.0);
-            float val = gl_FragColor.w;
+            float val = shadowLight;
             //gl_FragColor = vec4(val, val, val, 1.0);
-        }`,
-    },
-    shadowProjection: {
-        vertexShader : `attribute vec4 a_position;
-        uniform mat4 u_worldViewProjection; 
-        void main(void) { 
-            gl_Position = u_worldViewProjection * a_position;
-        }`,
-        fragmentShader : `precision mediump float; 
-        uniform vec4 u_color;
-        void main(void) {
-            gl_FragColor = u_color;
+            //gl_FragColor = texture2D(u_depthTexture, vec2(gl_FragCoord.x/1184., gl_FragCoord.y/998.));
         }`,
     }
 };

@@ -38,6 +38,11 @@ $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
     gl.clearColor(0, 0, 1, 0.2);
+    const ext = gl.getExtension('WEBGL_depth_texture');
+    if (!ext) {
+        return alert('need WEBGL_depth_texture');
+    }
+    lib_init();
 
     //Caricamento oggetti scena
     loadCar('low');
@@ -71,27 +76,35 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
-    vCar.doStep(key);//Aggiornamento fisica della macchina
-
-    //Calcola ombre
-    if(shadows){
-        let lightWorldMatrix = m4.lookAt(pointLightPosition, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
-        let lightViewMatrix = m4.inverse(lightWorldMatrix);
-        let lightProjectionMatrix = m4.perspective(degToRad(180), 1, 0.5, 20);
-        let lightViewProjectionMatrix = m4.multiply(lightProjectionMatrix, lightViewMatrix);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer); 
-        gl.viewport(0,0,depthTextureSize, depthTextureSize);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        renderElement(gl, vCar, lightViewProjectionMatrix, 'shadowProjection'); 
-        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'shadowProjection'));
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
+    vCar.doStep(key);//Aggiornamento fisica della macchina
+
+    let textureMatrix = m4.identity();
+    let lightPosXZ = [pointLightPosition[0], 0 , pointLightPosition[2]];
+    //lightPosXZ[1] = pointLightPosition[1];
+    //lightPosXZ=[0,0,0];
+    lightPosXZ=[vCar.px, vCar.py, vCar.pz];
+    let lightWorldMatrix = m4.lookAt(pointLightPosition, lightPosXZ, cameraSettings.lookUpVector);
+    let lightViewMatrix = m4.inverse(lightWorldMatrix);
+    let lightProjectionMatrix = m4.perspective(degToRad(160), 1, 0.1, 100);
+    let lightViewProjectionMatrix = m4.multiply(lightProjectionMatrix, lightViewMatrix);
+    textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
+    textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
+    textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer); 
+    gl.viewport(0,0,depthTextureSize, depthTextureSize);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if(shadows && gfxSettings !== 'low'){//Calcola ombre
+        
+        renderElement(gl, vCar, lightViewProjectionMatrix, 'low'); 
+        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'low'));
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(alphaBlending){
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
@@ -123,16 +136,15 @@ function drawScene(elapsed) {
             break;
         case (CAMERA_MODE.FROM_TOP):
             /* CAMERA AEREA */
+            const FROM_TOP_DISTANCE = 7;
             cameraSettings.lookAtTarget = [vCar.px, vCar.py, vCar.pz], //Obbiettivo a cui la camera deve puntare
-            cameraSettings.cameraPosition = [vCar.px, vCar.py + 7, vCar.pz + 7]; //Posizione della camera
+            cameraSettings.cameraPosition = [vCar.px, vCar.py + FROM_TOP_DISTANCE, vCar.pz + FROM_TOP_DISTANCE]; //Posizione della camera
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
-    }
-    
-    
-    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings); //Mantengo la macchina fuori dalla lista degli oggetti di scena
+    } 
+    renderElement(gl, vCar, viewProjectionMatrix, gfxSettings, textureMatrix); //Mantengo la macchina fuori dalla lista degli oggetti di scena
                                         // modo da poterla renderizzare sempre per ultima (ordine per la trasparenza del vetro)
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings));
+    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings, textureMatrix));
     
 }
 
@@ -145,7 +157,7 @@ function drawScene(elapsed) {
 //Genera un nuovo oggetto bersaglio automaticamente in una posizione casuale 
 //(in una distanza limitata dalla posizione attuale del giocatore)
 function generateNewTarget() {
-    let startPos = [vCar.px, 0, vCar.pz];
+    let startPos = [vCar.px, -0.08, vCar.pz];
     //Calcolo una posizione casuale
     startPos[0] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
     startPos[2] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;

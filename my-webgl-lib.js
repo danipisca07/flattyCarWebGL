@@ -148,9 +148,9 @@ function animate() {
 //RENDERING OGGETTI MIA LIBRERIA
 ////////////////////
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
-let lastBufferInfo = null; //Variabili utilizzate per mantenere gli ultimi buffer caricati (evitano il ricaricamento se non necessario)
 
-function renderElement(gl, model, viewProjectionMatrix, gfxSettings) {
+function renderElement(gl, element, viewProjectionMatrix, gfxSettings, opt_textureMatrix) {
+    let textureMatrix = opt_textureMatrix != undefined ? opt_textureMatrix : m4.identity();
     if (gfxSettings === undefined) gfxSettings = this.gfxSettings;
     let shaders = shaderScripts[gfxSettings];
     if (shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
@@ -159,54 +159,48 @@ function renderElement(gl, model, viewProjectionMatrix, gfxSettings) {
         lastShaders = shaders;
         program = webglUtils.createProgramFromSources(gl, [shaders.vertexShader, shaders.fragmentShader]);
         gl.useProgram(program);
-        lastBufferInfo = null; //Se ricarico gli shader dovrò per forza ricaricare anche tutti i buffer (cambiano gli indirizzi)
     }
-    for (let i = 0; i < model.parts.length; i++) {
-        if (model.parts[i] !== undefined)
-            renderPart(gl, program, model, model.parts[i], viewProjectionMatrix, gfxSettings);
+    let elementUniforms = {
+        u_ambient : ambientLight,
+        u_pointLightPosition : pointLightPosition,
+        u_cameraPosition : cameraSettings.cameraPosition,
+        u_depthTexture: depthTexture,
+        u_textureMatrix : textureMatrix,
+    }
+    let uniformSetters = webglUtils.createUniformSetters(gl, program);
+    webglUtils.setUniforms(uniformSetters, elementUniforms);
+    for (let i = 0; i < element.parts.length; i++) {
+        if (element.parts[i] !== undefined)
+            renderPart(gl, program, element, element.parts[i], viewProjectionMatrix);
     }
 }
 
-function renderPart(gl, program, model, part, viewProjectionMatrix, gfxSettings) {
-    let worldMatrix = model.getPartLocalMatrix(part.type);
-    let uniforms = {
+function renderPart(gl, program, element, part, viewProjectionMatrix) {
+    let worldMatrix = element.getPartLocalMatrix(part.type);
+    let partUniforms = {
         u_world: worldMatrix,
         u_worldViewProjection: m4.multiply(viewProjectionMatrix, worldMatrix),
         u_color: part.color,
-        u_projectedTexture: depthTexture,
+        u_shininess: part.shininess,
     }
 
     var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
     if(texcoordLocation != -1){
+        partUniforms.u_texture = part.texture != undefined ? part.texture : transparentTexture;
         //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
         if (part.textCoord != undefined && part.texture != undefined) {
             gl.enableVertexAttribArray(texcoordLocation);
-            gl.bindTexture(gl.TEXTURE_2D, part.texture);
+            //gl.bindTexture(gl.TEXTURE_2D, part.texture);
         } else {
-            var texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            var transparentPixel = new Uint8Array([0, 0, 0, 0]);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); //Imposto la texture di default ad un pixel trasparente
             gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
         }
     }
     
-
-    if (gfxSettings === 'high') { //TODO: Questo check si può cavare, tanto lo fa la libreria
-        uniforms.u_ambient = ambientLight;
-        uniforms.u_pointLightPosition = pointLightPosition;
-        uniforms.u_cameraPosition = cameraSettings.cameraPosition;
-        uniforms.u_shininess = part.shininess;
-    }
-
     if (part.bufferInfo === undefined) createBuffers(gl, part); //Se i buffer non sono ancora stati caricati lo faccio subito
-    if (part.bufferInfo != lastBufferInfo) {
-        lastBufferInfo = part.bufferInfo;
-        let attributeSetters = webglUtils.createAttributeSetters(gl, program);
-        webglUtils.setBuffersAndAttributes(gl, attributeSetters, part.bufferInfo);
-    }
+    let attributeSetters = webglUtils.createAttributeSetters(gl, program);
+    webglUtils.setBuffersAndAttributes(gl, attributeSetters, part.bufferInfo);
     let uniformSetters = webglUtils.createUniformSetters(gl, program);
-    webglUtils.setUniforms(uniformSetters, uniforms);
+    webglUtils.setUniforms(uniformSetters, partUniforms);
 
     if (part.nIndices === undefined) {
         gl.drawArrays(gl.TRIANGLES, 0, part.nVertices / 3);
@@ -259,29 +253,42 @@ function createTexture(gl, part, texImage, generateMipmap) {
 // OMBRE
 ////////////////////
 
-var depthTexture = gl.createTexture();
-var depthTextureSize = 512; //Risoluzione ombre
-gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-gl.texImage2D(
-    gl.TEXTURE_2D,      // target
-    0,                  // mip level
-    gl.DEPTH_COMPONENT, // internal format
-    depthTextureSize,   // width
-    depthTextureSize,   // height
-    0,                  // border
-    gl.DEPTH_COMPONENT, // format
-    gl.UNSIGNED_INT,    // type
-    null);              // data
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
- 
-var depthFramebuffer = gl.createFramebuffer();
-gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
-gl.framebufferTexture2D(
-    gl.FRAMEBUFFER,       // target
-    gl.DEPTH_ATTACHMENT,  // attachment point
-    gl.TEXTURE_2D,        // texture target
-    depthTexture,         // texture
-    0);                   // mip level
+let depthTexture, depthTextureSize, depthFramebuffer;
+var transparentTexture, transparentPixel;
+
+function lib_init(){
+    depthTexture = gl.createTexture();
+    depthTextureSize = 4096; //Risoluzione ombre
+    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D,      // target
+        0,                  // mip level
+        gl.DEPTH_COMPONENT, // internal format
+        depthTextureSize,   // width
+        depthTextureSize,   // height
+        0,                  // border
+        gl.DEPTH_COMPONENT, // format
+        gl.UNSIGNED_INT,    // type
+        null);              // data
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+     
+    depthFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,       // target
+        gl.DEPTH_ATTACHMENT,  // attachment point
+        gl.TEXTURE_2D,        // texture target
+        depthTexture,         // texture
+        0);                   // mip level
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    
+    transparentTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, transparentTexture);
+    transparentPixel = new Uint8Array([0, 0, 0, 0]);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, transparentPixel); 
+}
+

@@ -120,6 +120,11 @@ void main() {
       texColor.rgb * light * shadowLight +
       specular * shadowLight,
       texColor.a);
+
+  //DEBUG
+  float val = currentDepth;
+  //gl_FragColor = vec4(val, val, val, 1.0);
+  gl_FragColor = texture2D(u_projectedTexture, vec2(gl_FragCoord.x/398., gl_FragCoord.y/298.));
 }
 </script>
 <!-- vertex shader -->
