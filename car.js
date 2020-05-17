@@ -38,6 +38,7 @@ var vCar = {
         if (keyPressed[KEYS.A]) vCar.sterzo += addizioneSterzo;
         if (keyPressed[KEYS.D]) vCar.sterzo -= addizioneSterzo;
         vCar.sterzo *= vCar.velRitornoSterzo; // ritorno a volante fermo
+        if(Math.abs(vCar.sterzo) < 0.000001 && !keyPressed[KEYS.A] && !keyPressed[KEYS.D]) vCar.sterzo = 0; //Evita che lo sterzo rimanga attivo
 
         if (keyPressed[KEYS.SPACE] && vzm<0) 
             vzm += (vCar.accMax * vCar.grip); //Freno a mano
