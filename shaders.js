@@ -73,37 +73,36 @@ var shaderScripts = {
                 specularLight = dot(normal, halfVector);
                 specularLight = pow(specularLight, u_shininess);
             } 
-            float totLight = u_ambient + pointLight;
-            float light = clamp(totLight/(1.-u_ambient), u_ambient, 1.0); //Mappa nel range u_ambient <-> 1
+            float light = u_ambient + pointLight;
             
-            vec4 tex = texture2D(u_texture, v_textCoord);
-
             //Shadows
             vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
-            float currentDepth = projectedTexcoord.z - 0.00018;
+            float currentDepth = projectedTexcoord.z - 0.00001;//- 0.00018;
 
-            bool inRange =
+            bool inProjectionRange =
                 projectedTexcoord.x >= 0.0 &&
                 projectedTexcoord.x <= 1.0 &&
                 projectedTexcoord.y >= 0.0 &&
                 projectedTexcoord.y <= 1.0;
 
             float projectedDepth = texture2D(u_depthTexture, projectedTexcoord.xy).r;
-            float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.5 : 1.0;
+            float shadowLight = projectedDepth <= currentDepth ? 0.5 : 1.0;
+            if(inProjectionRange){
             light *= shadowLight;
+            }
             if(light < u_ambient) {
                 light = u_ambient;
             }
             
+            vec4 tex = texture2D(u_texture, v_textCoord);
             gl_FragColor = tex + u_color * (1.-tex.a);
-            //gl_FragColor = u_color;
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight * shadowLight;
 
             //DEBUG
             //gl_FragColor = vec4(normalize(v_projectedTexcoord.xyz), 1.);
             //gl_FragColor = vec4(normal, 1.0);
-            float val = shadowLight;
+            //float val = shadowLight;
             //gl_FragColor = vec4(val, val, val, 1.0);
             //gl_FragColor = texture2D(u_depthTexture, vec2(gl_FragCoord.x/1184., gl_FragCoord.y/998.));
         }`,
