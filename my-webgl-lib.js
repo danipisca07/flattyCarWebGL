@@ -148,9 +148,7 @@ function animate() {
 //RENDERING OGGETTI MIA LIBRERIA
 ////////////////////
 let lastShaders = null; let program; //Variabili utilizzate per mantenere l'ultimo shader caricato (evitano il ricaricamento se non necessario)
-
-function renderElement(gl, element, viewProjectionMatrix, gfxSettings, opt_textureMatrix) {
-    let textureMatrix = opt_textureMatrix != undefined ? opt_textureMatrix : m4.identity();
+function setupShaders(gl, gfxSettings){
     if (gfxSettings === undefined) gfxSettings = this.gfxSettings;
     let shaders = shaderScripts[gfxSettings];
     if (shaders === undefined) alert("Settaggio grafico sconosciuto, controllare impostazioni!");
@@ -160,12 +158,15 @@ function renderElement(gl, element, viewProjectionMatrix, gfxSettings, opt_textu
         program = webglUtils.createProgramFromSources(gl, [shaders.vertexShader, shaders.fragmentShader]);
         gl.useProgram(program);
     }
+}
+
+function renderElement(gl, element, viewProjectionMatrix, opt_textureMatrix) {
     let elementUniforms = {
         u_ambient : ambientLight,
         u_pointLightPosition : pointLightPosition,
         u_cameraPosition : cameraSettings.cameraPosition,
         u_depthTexture: getDepthTexture(),
-        u_textureMatrix : textureMatrix,
+        u_textureMatrix : opt_textureMatrix != undefined ? opt_textureMatrix : m4.identity(),
     }
     let uniformSetters = webglUtils.createUniformSetters(gl, program);
     webglUtils.setUniforms(uniformSetters, elementUniforms);

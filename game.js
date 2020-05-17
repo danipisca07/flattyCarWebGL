@@ -92,14 +92,16 @@ function drawScene(elapsed) {
         cameraRotation: [-degToRad(90), 0, 0],
     }
     let lightViewProjectionMatrix = getViewProjectionMatrix(gl, shadowProjectionSettings);
+    //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
     textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);
     gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(shadows && gfxSettings !== 'low'){//Calcola ombre
-        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix, 'low'));
+    if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
+        setupShaders(gl, 'low');
+        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix));
     }
 
     /* Rendering della scena */
@@ -143,7 +145,8 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, gfxSettings, textureMatrix)); //Ciclo di rendering degli oggetti
+    setupShaders(gl, gfxSettings);
+    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, textureMatrix)); //Ciclo di rendering degli oggetti
 }
 
 /*
