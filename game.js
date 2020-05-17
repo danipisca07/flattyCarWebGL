@@ -26,7 +26,7 @@ var gfxSettings = 'high';
 var shadows = true;
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
-var pointLightPosition = [0, 10, 0.0]; //Posizione punto luce
+var pointLightPosition = [0, 40, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
@@ -83,15 +83,18 @@ function drawScene(elapsed) {
 
     /* Rendering delle ombre dinamiche sulla scena */
     let textureMatrix = m4.identity();
+    //Utilizzo una proiezione che segua la macchina, in modo da rasterizzare solo le ombre "vicine" alla posizione attuale
     let shadowProjectionSettings = {
         aspectRatio : 1,
-        fieldOfViewRadians : degToRad(160),
-        zNear : 0.1,
+        //fieldOfViewRadians : degToRad(103),
+        fieldOfViewRadians : degToRad(40),
+        zNear : 1,
         zFar : 100,
         cameraPosition : pointLightPosition,
-        cameraRotation: [-degToRad(90), 0, 0],
+        lookAtTarget: [vCar.px, vCar.py, vCar.pz],
+        lookUpVector: [0,0,-1]
     }
-    let lightViewProjectionMatrix = getViewProjectionMatrix(gl, shadowProjectionSettings);
+    let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
     //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
     textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
     textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
@@ -100,7 +103,7 @@ function drawScene(elapsed) {
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
-        setupShaders(gl, 'low');
+        setupShaders(gl, 'low'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
         sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix));
     }
 
