@@ -148,8 +148,8 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
-    setupShaders(gl, 'low');
-    renderElement(gl,skybox, viewProjectionMatrix);
+    setupShaders(gl, "skybox");
+    renderSkybox(gl, skybox, viewProjectionMatrix);
     setupShaders(gl, gfxSettings);
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, textureMatrix)); //Ciclo di rendering degli oggetti
 }
@@ -271,28 +271,69 @@ function loadCar(setting) {
     });
 }
 
-function loadSkybox() {
+function loadSkybox(){
     skybox = {
-        parts: [],
-        worldMatrix: getModelMatrix(m4.identity(), [1000, 70, 1000], [0, 0, 0], [0, 0, 0]),
-        getPartLocalMatrix: function (partType) {
-            return this.worldMatrix;
-        },
+        vertices : [
+            -1, -1,
+             1, -1,
+            -1,  1,
+            -1,  1,
+             1, -1,
+             1,  1,
+          ],
     };
-    loader.loadMesh('./assets/skybox.obj').then((data) => {
-        let boxMesh = loader.loadObj(data);
-        var box ={
-            vertices: boxMesh.vertices,
-            normals: boxMesh.normals,
-            textCoord: boxMesh.textCoord,
-            color: [0.3, 0.3, 0.3, 1],
-            shininess: 100000000000,
-        }
-        loader.loadTexture(gl, box, './assets/skybox.png', false);
-        createBuffers(gl, box);
-        skybox.parts.push(box);
+    let arrays = {
+        position: { data: skybox.vertices, numComponents: 2 },
+    };
+    skybox.bufferInfo = webglUtils.createBufferInfoFromArrays(gl, arrays);
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceInfos = [
+        {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+        url: './assets/skybox/pos-x.png',
+        },
+        {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+        url: './assets/skybox/neg-x.png',
+        },
+        {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+        url: './assets/skybox/pos-y.png',
+        },
+        {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+        url: './assets/skybox/neg-y.png',
+        },
+        {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+        url: './assets/skybox/pos-z.png',
+        },
+        {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+        url: './assets/skybox/neg-z.png',
+        },
+    ];
+    faceInfos.forEach((faceInfo) => {
+        const {target, url} = faceInfo;
+
+        const width = 256;
+        const height = 256;
+        gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+        const image = new Image();
+        image.src = url;
+        image.addEventListener('load', function() {
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        });
     });
-    
+    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+    skybox.samplerCube = texture;
 }
 
 

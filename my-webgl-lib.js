@@ -72,7 +72,8 @@ function getViewProjectionMatrixLookAt(gl, cameraSettings) {
     var cameraMatrix = m4.lookAt(cameraSettings.cameraPosition, cameraSettings.lookAtTarget, cameraSettings.lookUpVector);
     var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
+    viewProjectionMatrix.viewMatrix = viewMatrix;
+    viewProjectionMatrix.projectionMatrix = projectionMatrix;
     return viewProjectionMatrix;
 }
 
@@ -92,7 +93,8 @@ function getViewProjectionMatrix(gl, cameraSettings) {
 
     var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
+    viewProjectionMatrix.viewMatrix = viewMatrix;
+    viewProjectionMatrix.projectionMatrix = projectionMatrix;
     return viewProjectionMatrix;
 }
 
@@ -119,7 +121,8 @@ function getViewProjectionMatrixFollow(gl, cameraSettings) {
 
     var viewMatrix = m4.inverse(cameraMatrix);
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
+    viewProjectionMatrix.viewMatrix = viewMatrix;
+    viewProjectionMatrix.projectionMatrix = projectionMatrix;
     return viewProjectionMatrix;
 }
 
@@ -160,6 +163,26 @@ function setupShaders(gl, gfxSettings){
     }
 }
 
+function renderSkybox(gl, skybox, viewProjectionMatrix){
+    let viewMatrix = viewProjectionMatrix.viewMatrix;
+    let projectionMatrix = viewProjectionMatrix.projectionMatrix;
+    viewMatrix[12] = 0;
+    viewMatrix[13] = 0;
+    viewMatrix[14] = 0;
+    var viewDirectionProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+    var viewDirectionProjectionInverseMatrix = m4.inverse(viewDirectionProjectionMatrix);
+    let uniforms = {
+        u_skybox: skybox.samplerCube,
+        u_viewDirectionProjectionInverse: viewDirectionProjectionInverseMatrix,
+    }
+    let attributeSetters = webglUtils.createAttributeSetters(gl, program);
+    webglUtils.setBuffersAndAttributes(gl, attributeSetters, skybox.bufferInfo);
+    let uniformSetters = webglUtils.createUniformSetters(gl, program);
+    webglUtils.setUniforms(uniformSetters, uniforms);
+    gl.depthFunc(gl.LEQUAL);
+    gl.drawArrays(gl.TRIANGLES, 0, 1*6);
+}
+
 function renderElement(gl, element, viewProjectionMatrix, opt_textureMatrix) {
     let elementUniforms = {
         u_ambient : ambientLight,
@@ -188,10 +211,8 @@ function renderPart(gl, program, element, part, viewProjectionMatrix) {
     var texcoordLocation = gl.getAttribLocation(program, "a_textCoord");
     if(texcoordLocation != -1){
         partUniforms.u_texture = part.texture != undefined ? part.texture : getTransparentTexture();
-        //TODO: Caricare la texture trasparente all'inizializzaione e tenere qui solo l'enable Vertex attrib in base a textCoord??
         if (part.textCoord != undefined && part.texture != undefined) {
             gl.enableVertexAttribArray(texcoordLocation);
-            //gl.bindTexture(gl.TEXTURE_2D, part.texture);
         } else {
             gl.disableVertexAttribArray(texcoordLocation); //Dato che non uso l'attribute lo disabilito (avrà valore di default [0,0])
         }
@@ -203,6 +224,7 @@ function renderPart(gl, program, element, part, viewProjectionMatrix) {
     let uniformSetters = webglUtils.createUniformSetters(gl, program);
     webglUtils.setUniforms(uniformSetters, partUniforms);
 
+    gl.depthFunc(gl.LESS);
     if (part.nIndices === undefined) {
         gl.drawArrays(gl.TRIANGLES, 0, part.nVertices / 3);
     } else {
