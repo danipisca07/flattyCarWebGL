@@ -29,6 +29,7 @@ var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [0, 40, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
+var skybox; //Lo skybox viene mantenuto separatamente in quanto non influenzato dall'illuminazione
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 var targetData; //Oggetto dove salverò i dati dell'oggetto bersaglio in modo da non doverlo ricaricare più volte
 var newTargetMaxDistance = 10;
@@ -45,7 +46,6 @@ $(document).ready(function () {
 
     //Caricamento oggetti scena
     loadCar('low');
-    loadFloor();
     loadSkybox();
     loadCube();
     loader.loadMesh('./assets/target.obj').then((data) => {
@@ -148,6 +148,8 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
+    setupShaders(gl, 'low');
+    renderElement(gl,skybox, viewProjectionMatrix);
     setupShaders(gl, gfxSettings);
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, textureMatrix)); //Ciclo di rendering degli oggetti
 }
@@ -269,34 +271,10 @@ function loadCar(setting) {
     });
 }
 
-function loadFloor() {
-    loader.loadMesh('./assets/floor.obj').then((data) => {
-        let floorMesh = loader.loadObj(data);
-        var floor = {
-            parts: [
-                {
-                    vertices: floorMesh.vertices,
-                    normals: floorMesh.normals,
-                    textCoord: floorMesh.textCoord,
-                    color: [0.3, 0.3, 0.3, 1],
-                    shininess: 100000000000,
-                }
-            ],
-            worldMatrix: getModelMatrix(m4.identity(), [50, 1, 50], [0, 0, 0], [0, 0, 0]),
-            getPartLocalMatrix: function (partType) {
-                return this.worldMatrix;
-            },
-        };
-        loader.loadTexture(gl, floor.parts[0], './assets/asphalt.jpg', true);
-        createBuffers(gl, floor.parts[0]);
-        sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
-    });
-}
-
 function loadSkybox() {
-    var skybox = {
+    skybox = {
         parts: [],
-        worldMatrix: getModelMatrix(m4.identity(), [50, 10, 50], [0, 0, 0], [0, 0, 0]),
+        worldMatrix: getModelMatrix(m4.identity(), [1000, 70, 1000], [0, 0, 0], [0, 0, 0]),
         getPartLocalMatrix: function (partType) {
             return this.worldMatrix;
         },
@@ -313,7 +291,6 @@ function loadSkybox() {
         loader.loadTexture(gl, box, './assets/skybox.png', false);
         createBuffers(gl, box);
         skybox.parts.push(box);
-        sceneObjects.unshift(skybox); //Aggiungo la box all'inizio della lista degli oggetti dato che non ha trasparenza
     });
     
 }
