@@ -48,7 +48,7 @@ $(document).ready(function () {
     loadCar('low');
     loadFloor();
     loadSkybox();
-    loadCube();
+    loadCube([0, 5, -10], './assets/f-tex.png');
     loader.loadMesh('./assets/target.obj').then((data) => {
         let targetMesh = loader.loadObj(data);
         targetData = {
@@ -362,7 +362,7 @@ function loadSkybox(){
 }
 
 
-function loadCube() {
+function loadCube(position, textureUrl) {
     loader.loadMesh('./assets/texturedCube.obj').then((data) => {
         let cubeMesh = loader.loadObj(data);
         var cube = {
@@ -375,13 +375,13 @@ function loadCube() {
                     shininess: 10000,
                 }
             ],
-            worldMatrix: getModelMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], [0, 1, -10]),
+            worldMatrix: getModelMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], position),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
         };
         createBuffers(gl, cube.parts[0]);
-        loader.loadTexture(gl, cube.parts[0], './assets/f-tex.png');
+        loader.loadTexture(gl, cube.parts[0], textureUrl);
         sceneObjects.unshift(cube); //Aggiungo il cubo all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
