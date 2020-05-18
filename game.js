@@ -106,9 +106,11 @@ function drawScene(elapsed) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
         setupShaders(gl, 'low'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
-        sceneObjects.forEach((element) => renderElement(gl, element, lightViewProjectionMatrix));
+        sceneObjects.forEach((element) => {
+            if(!element.noShadows)
+                renderElement(gl, element, lightViewProjectionMatrix)
+        });
     }
-
     /* Rendering della scena */
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -310,6 +312,7 @@ function loadFence() {
                     shininess: 100000000000,
                 }
             ],
+            noShadows : true,
             worldMatrix: getModelMatrix(m4.identity(), [30, 20, 30], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
