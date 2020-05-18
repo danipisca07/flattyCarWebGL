@@ -47,6 +47,7 @@ $(document).ready(function () {
     //Caricamento oggetti scena
     loadCar('low');
     loadFloor();
+    loadFence();
     loadSkybox();
     loadCube([0, 5, -10], './assets/f-tex.png');
     loader.loadMesh('./assets/target.obj').then((data) => {
@@ -293,6 +294,30 @@ function loadFloor() {
         loader.loadTexture(gl, floor.parts[0], './assets/skybox/neg-y.png', true);
         createBuffers(gl, floor.parts[0]);
         sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
+    });
+}
+
+function loadFence() {
+    loader.loadMesh('./assets/fence.obj').then((data) => {
+        let fenceMesh = loader.loadObj(data);
+        var fence = {
+            parts: [
+                {
+                    vertices: fenceMesh.vertices,
+                    normals: fenceMesh.normals,
+                    textCoord: fenceMesh.textCoord,
+                    color: [0, 0, 0, 0],
+                    shininess: 100000000000,
+                }
+            ],
+            worldMatrix: getModelMatrix(m4.identity(), [30, 20, 30], [0, 0, 0], [0, 0, 0]),
+            getPartLocalMatrix: function (partType) {
+                return this.worldMatrix;
+            },
+        };
+        loader.loadTexture(gl, fence.parts[0], './assets/fence.png', true);
+        createBuffers(gl, fence.parts[0]);
+        sceneObjects.push(fence); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
 

@@ -19,10 +19,18 @@ var vCar = {
     //Funzione contenente la fisica del movimento della macchina. Richiamarla ogni volta che si deve aggiornare la sua posizione
     //keyPressed: Array [bool, bool, bool, bool] dove ogni posizione indica se il rispettivo tasto è stato premuto
     doStep: (keyPressed) => {
-        let vCar = this.vCar;
-        //let vCar = this;
+        let vCar = this.vCar; //shortcut
         // computiamo l'evolversi della macchina
         var vxm, vym, vzm; // velocita' in spazio macchina
+
+        let distFrom0 = Math.sqrt(Math.pow(vCar.px,2)+Math.pow(vCar.pz,2));
+        if(distFrom0 > vCar.maxD){
+            let facingN = vCar.facing < 0 ? 360+vCar.facing : vCar.facing;
+            let atan = radToDeg(Math.atan2(vCar.px/vCar.maxD, vCar.pz/vCar.maxD));
+            vCar.facing = atan;
+            vCar.vx *= -1;
+            vCar.vz *= -1;
+        }
 
         // da vel frame mondo a vel frame macchina
         var cosf = Math.cos(vCar.facing * Math.PI / 180.0);
@@ -53,6 +61,7 @@ var vCar = {
         // l'orientamento della macchina segue quello dello sterzo
         // (a seconda della velocita' sulla z)
         vCar.facing = vCar.facing - (vzm * vCar.grip) * vCar.sterzo;
+        if(Math.abs(vCar.facing) > 360) vCar.facing = vCar.facing % 360;         
 
         // rotazione mozzo ruote (a seconda della velocita' sulla z)
         var da; //delta angolo
@@ -101,6 +110,7 @@ var vCar = {
     facing: 0, // orientamento (0 = -Z)
     mozzoP: 0, mozzoA: 0, sterzo: 0,   // Rotazione ruote
     vx: 0, vy: 0, vz: 0, //Velocità
+    maxD: 28,
 
     //Settings fisici
     velSterzo: 3.4,
@@ -109,7 +119,7 @@ var vCar = {
     attritoZ: 0.991, //Velocità massima
     attritoX: 0.80, //0.8 realistico, 0.9 drift
     attritoY: 1.0,
-    grip: 0.100, //Grip sterzo (0.075 realistico)
+    grip: 0.150, //Grip sterzo (0.075 realistico)
     derapata: 10, //Fattore derapata 
 
     //Model Settings
