@@ -166,10 +166,12 @@ function drawScene(elapsed) {
 //Genera un nuovo oggetto bersaglio automaticamente in una posizione casuale 
 //(in una distanza limitata dalla posizione attuale del giocatore)
 function generateNewTarget() {
-    let startPos = [vCar.px, -0.08, vCar.pz];
+    let startPos = [0, -0.08, 0];
     //Calcolo una posizione casuale
-    startPos[0] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
-    startPos[2] += (Math.random() - 0.5) * 2 * newTargetMaxDistance;
+    do{
+        startPos[0] = vCar.px + (Math.random() - 0.5) * 2 * newTargetMaxDistance;
+        startPos[2] = vCar.pz + (Math.random() - 0.5) * 2 * newTargetMaxDistance;
+    } while(Math.sqrt( Math.pow(startPos[0],2) + Math.pow(startPos[2],2) ) > vCar.maxD -8);
     var target = {
         parts: [
             targetData //Utilizzo la mesh precaricata (con buffers e texture)

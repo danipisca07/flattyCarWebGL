@@ -110,7 +110,7 @@ var vCar = {
     facing: 0, // orientamento (0 = -Z)
     mozzoP: 0, mozzoA: 0, sterzo: 0,   // Rotazione ruote
     vx: 0, vy: 0, vz: 0, //Velocità
-    maxD: 28,
+    maxD: 29,
 
     //Settings fisici
     velSterzo: 3.4,
