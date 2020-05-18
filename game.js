@@ -26,7 +26,7 @@ var gfxSettings = 'high';
 var shadows = true;
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
-var pointLightPosition = [0, 40, 0.0]; //Posizione punto luce
+var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
 
 var gl, baseCarMatrix;
 var skybox; //Lo skybox viene mantenuto separatamente in quanto non influenzato dall'illuminazione
@@ -85,15 +85,14 @@ function drawScene(elapsed) {
 
     /* Rendering delle ombre dinamiche sulla scena */
     let textureMatrix = m4.identity();
-    //Utilizzo una proiezione che segua la macchina, in modo da rasterizzare solo le ombre "vicine" alla posizione attuale
+    //Utilizzo una proiezione dal punto luce per creare la shadow map
     let shadowProjectionSettings = {
         aspectRatio : 1,
-        //fieldOfViewRadians : degToRad(103),
-        fieldOfViewRadians : degToRad(40),
+        fieldOfViewRadians : degToRad(70),
         zNear : 1,
         zFar : 100,
         cameraPosition : pointLightPosition,
-        lookAtTarget: [vCar.px, vCar.py, vCar.pz],
+        lookAtTarget: [5,0,0],
         lookUpVector: [0,0,-1]
     }
     let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
