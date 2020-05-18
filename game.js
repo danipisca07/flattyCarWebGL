@@ -46,6 +46,7 @@ $(document).ready(function () {
 
     //Caricamento oggetti scena
     loadCar('low');
+    loadFloor();
     loadSkybox();
     loadCube();
     loader.loadMesh('./assets/target.obj').then((data) => {
@@ -268,6 +269,30 @@ function loadCar(setting) {
         glass.shininess = 10;
         createBuffers(gl, glass);
         vCar.parts[8] = glass;
+    });
+}
+
+function loadFloor() {
+    loader.loadMesh('./assets/floor.obj').then((data) => {
+        let floorMesh = loader.loadObj(data);
+        var floor = {
+            parts: [
+                {
+                    vertices: floorMesh.vertices,
+                    normals: floorMesh.normals,
+                    textCoord: floorMesh.textCoord,
+                    color: [0.3, 0.3, 0.3, 1],
+                    shininess: 100000000000,
+                }
+            ],
+            worldMatrix: getModelMatrix(m4.identity(), [50, 1, 50], [0, 0, 0], [0, 0, 0]),
+            getPartLocalMatrix: function (partType) {
+                return this.worldMatrix;
+            },
+        };
+        loader.loadTexture(gl, floor.parts[0], './assets/skybox/neg-y.png', true);
+        createBuffers(gl, floor.parts[0]);
+        sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
 
