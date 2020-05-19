@@ -1,5 +1,6 @@
 "use strict";
 
+//Varie tipologie di telecamera
 var CAMERA_MODE = {
     MENU: -1,
     FIRST_PERSON: 0,
@@ -7,6 +8,7 @@ var CAMERA_MODE = {
     FROM_TOP: 2,
 }
 
+//Impostazioni iniziali telecamera
 var cameraSettings = {
     cameraMode: CAMERA_MODE.MENU,
     cameraPosition: [0, 0, 0],
@@ -18,20 +20,17 @@ var cameraSettings = {
 }
 
 var key = [false, false, false, false]; //Vedi car.js per i codici tasti
-var translation = [0, 0, 0];
-var rotation = [degToRad(0), degToRad(0), degToRad(0)];
-var scale = [1, 1, 1];
 
-var gfxSettings = 'high';
+var gfxSettings = 'shadows'; //Impostazione grafica
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
 
-var gl, baseCarMatrix;
+var gl;
 var skybox; //Lo skybox viene mantenuto separatamente in quanto non influenzato dall'illuminazione
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 var targetData; //Oggetto dove salverò i dati dell'oggetto bersaglio in modo da non doverlo ricaricare più volte
-var newTargetMaxDistance = 10;
+var newTargetMaxDistance = 10; //Massima distanza di spawn di un nuovo bersaglio dalla posizione attuale della macchina
 
 //Funzione di inizializzazione
 $(document).ready(function () {
@@ -49,7 +48,7 @@ $(document).ready(function () {
     loadFence();
     loadSkybox();
     loadCube([0, 5, -10], './assets/f-tex.png');
-    loader.loadMesh('./assets/target.obj').then((data) => {
+    loader.loadMesh('./assets/target.obj').then((data) => { //Precarica la mesh del bersaglio
         let targetMesh = loader.loadObj(data);
         targetData = {
             vertices: targetMesh.vertices,
@@ -61,7 +60,7 @@ $(document).ready(function () {
         loader.loadTexture(gl, targetData, './assets/target.jpg');
         createBuffers(gl, targetData);
     });
-    startAnimating(60, drawScene);//Avvia la renderizzazione della scena
+    startAnimating(60, drawScene);//Avvia la renderizzazione della scena a 60 fps
 });
 
 //Avvia il gioco
@@ -84,15 +83,15 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     /* Rendering delle ombre dinamiche sulla scena */
-    let depthProjectionMatrix = m4.identity();
-    //Utilizzo una proiezione dal punto luce per creare la shadow map
+    let depthProjectionMatrix = m4.identity(); //Matrice per la trasformazione di vista della depth texture
+    //Utilizzo una proiezione dal punto luce verso il centro della scena per creare la shadow map
     let shadowProjectionSettings = {
         aspectRatio : 1,
         fieldOfViewRadians : degToRad(70),
         zNear : 1,
         zFar : 100,
         cameraPosition : pointLightPosition,
-        lookAtTarget: [5,0,0],
+        lookAtTarget: [5,0,0], //Guardo al centro della scena
         lookUpVector: [0,0,-1]
     }
     let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
@@ -103,9 +102,9 @@ function drawScene(elapsed) {
     gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
-        setupShaders(gl, 'low'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
+        setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
         sceneObjects.forEach((element) => {
-            if(!element.noShadows)
+            if(!element.noShadows) //Se l'oggetto non deve creare ombre non lo considero
                 renderElement(gl, element, lightViewProjectionMatrix)
         });
     }
@@ -113,7 +112,7 @@ function drawScene(elapsed) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(alphaBlending){
+    if(alphaBlending){ //Attivo la trasparenza
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
     } else{
@@ -150,8 +149,10 @@ function drawScene(elapsed) {
             viewProjectionMatrix = getViewProjectionMatrixLookAt(gl);
             break;
     } 
+    //Render skybox
     setupShaders(gl, "skybox");
     renderSkybox(gl, skybox, viewProjectionMatrix);
+    //Render scena
     setupShaders(gl, gfxSettings);
     sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, depthProjectionMatrix)); //Ciclo di rendering degli oggetti
 }
@@ -166,7 +167,7 @@ function drawScene(elapsed) {
 //(in una distanza limitata dalla posizione attuale del giocatore)
 function generateNewTarget() {
     let startPos = [0, -0.08, 0];
-    //Calcolo una posizione casuale
+    //Calcolo una posizione casuale (a max distanza dalla macchina e all'interno del recinto)
     do{
         startPos[0] = vCar.px + (Math.random() - 0.5) * 2 * newTargetMaxDistance;
         startPos[2] = vCar.pz + (Math.random() - 0.5) * 2 * newTargetMaxDistance;
@@ -176,7 +177,7 @@ function generateNewTarget() {
             targetData //Utilizzo la mesh precaricata (con buffers e texture)
         ],
         position: startPos,
-        hit: false,
+        hit: false, //bool che indica se il bersaglio è stato colpito
         getPartLocalMatrix: function (partType) {
             if (!this.hit) {
                 let dist = m4.length(m4.subtractVectors(this.position, [vCar.px, vCar.py, vCar.pz]));
@@ -207,31 +208,31 @@ function generateNewTarget() {
 //Effettua il caricamento dai file .obj dei modelli della macchina a definizione bassa
 function loadCar(setting) {
     document.getElementById('loading').style.display = "block";
-    let folder = "car_"+setting;
+    let folder = "car_"+setting; //In base al settaggio grafico della macchina carico i modelli dalla cartella corrispondente
     vCar.parts = new Array();
     const bodyColor = [1, 0.5, 0, 1];
     const wheelColor = [0.1, 0.1, 0.1, 1];
+    //Le varie componenti della macchina sono state separate in obj diversi quindi carico tutte le parti
     loader.loadMesh('./assets/'+folder+'/body.obj').then((data) => { //Carrozzeria
         let body = loader.loadObj(data); //Carica vertices e normal da file OBJ
         body.type = CAR_PARTS.BODY; //Tipo utilizzato per il posizionamento nel sistema di riferimento locale
         body.color = bodyColor;
         body.shininess = 100;
-        createBuffers(gl, body);
+        createBuffers(gl, body); //Carico i dati nei buffers
         vCar.parts[0] = body;
         if (!vCar.loaded) {
             sceneObjects.push(vCar); //Aggiungo la macchina alla lista degli oggetti di scena, è importante aggiungerla come ultimo elemento
                                 // dell' array in modo che venga renderizzata per ultima in modo da ottenere l'effetto trasparenza per i vetri
             vCar.loaded = true;
-            //loadCar('high');//Avvia il caricamento dei modelli di più alta definizione
         }
         document.getElementById('loading').style.display = "none";
     });
     loader.loadMesh('./assets/'+folder+'/wheel.obj').then((data) => { //Ruote
         let wheel = loader.loadObj(data); //Carica il modello della ruota che verrà utilizzate per tutte e 4
         wheel.color = wheelColor;
-        wheel.shininess = 1000;
+        wheel.shininess = 10000000;
         createBuffers(gl, wheel);
-        for (let i = 1; i < 5; i++) {
+        for (let i = 1; i < 5; i++) { //Stessa mesh per tutte e 4 le ruote
             vCar.parts[i] = { ...wheel };
         }
         vCar.parts[1].type = CAR_PARTS.WHEEL_REAR_R;
@@ -246,7 +247,7 @@ function loadCar(setting) {
         doors.color = bodyColor;
         doors.shininess = 100;
         createBuffers(gl, doors);
-        loader.loadTexture(gl, doors, './assets/lee-number.png');
+        loader.loadTexture(gl, doors, './assets/lee-number.png'); //Carico la texture
         vCar.parts[5] = doors;
     });
     loader.loadMesh('./assets/driver.obj').then((data) => { //Pilota
@@ -324,6 +325,7 @@ function loadFence() {
     });
 }
 
+//Carica le texture e i dati dello skybox nei buffer
 function loadSkybox(){
     skybox = {
         vertices : [
@@ -414,6 +416,7 @@ function loadCube(position, textureUrl) {
     });
 }
 
+//Oggetto helper per il caricamento degli .obj
 var loader = {
 
     //Caricamento asincrono di una mesh da file obj. Restituisce una promise 
