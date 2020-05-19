@@ -137,9 +137,8 @@ var shaderScripts = {
             gl_Position = u_worldViewProjection * a_position;
         }`,
         fragmentShader : `precision mediump float; 
-        uniform vec4 u_color;
         void main(void) {
-            gl_FragColor = u_color;
+            gl_FragColor = vec4(1,1,1,1);
         }`,
     },
 };

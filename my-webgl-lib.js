@@ -266,8 +266,16 @@ function getTransparentTexture(){
 ////////////////////
 // OMBRE
 ////////////////////
-const depthTextureSize = 8192; //Risoluzione ombre
+let depthTextureSize; //Risoluzione ombre
 let depthTexture, depthFramebuffer;
+
+function getDepthTextureSize(){
+    if(depthTextureSize === undefined){
+        depthTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        console.log("Using shadow projection texture of size: " + depthTextureSize);
+    }
+    return depthTextureSize;
+}
 
 function getDepthTexture(){
     if(depthTexture === undefined){
@@ -277,8 +285,8 @@ function getDepthTexture(){
             gl.TEXTURE_2D,      // target
             0,                  // mip level
             gl.DEPTH_COMPONENT, // internal format
-            depthTextureSize,   // width
-            depthTextureSize,   // height
+            getDepthTextureSize(),   // width
+            getDepthTextureSize(),   // height
             0,                  // border
             gl.DEPTH_COMPONENT, // format
             gl.UNSIGNED_INT,    // type

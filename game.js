@@ -100,7 +100,7 @@ function drawScene(elapsed) {
     depthProjectionMatrix = getManipulationMatrix(depthProjectionMatrix, [0.5, 0.5, 0.5], [0,0,0], [0.5, 0.5, 0.5]);
     depthProjectionMatrix = m4.multiply(depthProjectionMatrix, lightViewProjectionMatrix);
     gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
-    gl.viewport(0,0,depthTextureSize, depthTextureSize);
+    gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
         setupShaders(gl, 'shadowProjection'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
@@ -521,7 +521,6 @@ function toggleOnScreenControls(event) {
 }
 
 function eventBtn(btn, type) {
-    console.log(type);
     switch (btn) {
         case 'up':
             key[KEYS.W] = type;

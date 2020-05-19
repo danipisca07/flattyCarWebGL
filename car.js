@@ -23,11 +23,10 @@ var vCar = {
         // computiamo l'evolversi della macchina
         var vxm, vym, vzm; // velocita' in spazio macchina
 
-        let distFrom0 = Math.sqrt(Math.pow(vCar.px,2)+Math.pow(vCar.pz,2));
-        if(distFrom0 > vCar.maxD){
-            let facingN = vCar.facing < 0 ? 360+vCar.facing : vCar.facing;
-            let atan = radToDeg(Math.atan2(vCar.px/vCar.maxD, vCar.pz/vCar.maxD));
-            vCar.facing = atan;
+        let distFrom0 = Math.sqrt(Math.pow(vCar.px,2)+Math.pow(vCar.pz,2)); //Distanza dal centro della mappa
+        if(distFrom0 > vCar.maxD){//Se la macchina "sbatte" contro il recinto
+            vCar.facing = radToDeg(Math.atan2(vCar.px/vCar.maxD, vCar.pz/vCar.maxD)); //Reindirizzo la macchina verso il centro
+            //Faccio "rimbalzare" la macchina sul recinto
             vCar.vx *= -1;
             vCar.vz *= -1;
         }
@@ -60,8 +59,7 @@ var vCar = {
 
         // l'orientamento della macchina segue quello dello sterzo
         // (a seconda della velocita' sulla z)
-        vCar.facing = vCar.facing - (vzm * vCar.grip) * vCar.sterzo;
-        if(Math.abs(vCar.facing) > 360) vCar.facing = vCar.facing % 360;         
+        vCar.facing = vCar.facing - (vzm * vCar.grip) * vCar.sterzo;       
 
         // rotazione mozzo ruote (a seconda della velocita' sulla z)
         var da; //delta angolo
@@ -110,7 +108,7 @@ var vCar = {
     facing: 0, // orientamento (0 = -Z)
     mozzoP: 0, mozzoA: 0, sterzo: 0,   // Rotazione ruote
     vx: 0, vy: 0, vz: 0, //Velocità
-    maxD: 29,
+    maxD: 29, //Massima distanza dal centro (posizione del recinto)
 
     //Settings fisici
     velSterzo: 3.4,
@@ -120,7 +118,7 @@ var vCar = {
     attritoX: 0.80, //0.8 realistico, 0.9 drift
     attritoY: 1.0,
     grip: 0.150, //Grip sterzo (0.075 realistico)
-    derapata: 10, //Fattore derapata 
+    derapata: 10, //Fattore derapata (quando viene premuto spazio = freno a mano) 
 
     //Model Settings
     carlingaScale: [0.3, 0.3, 0.3], //Scala dimensione modello carrozzeria macchina
