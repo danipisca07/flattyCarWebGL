@@ -32,7 +32,7 @@ var shaderScripts = {
         varying vec3 v_surfaceToCamera;
 
         //Shadows
-        uniform mat4 u_textureMatrix;
+        uniform mat4 u_depthProjectionMatrix;
         varying vec4 v_projectedTexcoord;
 
         void main() {
@@ -46,7 +46,7 @@ var shaderScripts = {
 
             //Shadows
             vec4 worldPosition = u_world * a_position;
-            v_projectedTexcoord = u_textureMatrix * worldPosition;
+            v_projectedTexcoord = u_depthProjectionMatrix * worldPosition;
         }`,
         fragmentShader: `precision mediump float;
 
@@ -77,7 +77,7 @@ var shaderScripts = {
             
             //Shadows
             vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
-            float currentDepth = projectedTexcoord.z - 0.00001;//- 0.00018;
+            float currentDepth = projectedTexcoord.z - 0.000018;
 
             bool inProjectionRange =
                 projectedTexcoord.x >= 0.0 &&
@@ -129,6 +129,18 @@ var shaderScripts = {
                 gl_FragColor = textureCube(u_skybox, normalize(t.xyz / t.w));
             }
         `
+    },
+    shadowProjection : {
+        vertexShader : `attribute vec4 a_position;
+        uniform mat4 u_worldViewProjection; 
+        void main(void) { 
+            gl_Position = u_worldViewProjection * a_position;
+        }`,
+        fragmentShader : `precision mediump float; 
+        uniform vec4 u_color;
+        void main(void) {
+            gl_FragColor = u_color;
+        }`,
     },
 };
 

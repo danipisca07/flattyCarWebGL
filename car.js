@@ -87,20 +87,20 @@ var vCar = {
     // passare direttamente alla renderizzazione di ognuna
     getPartLocalMatrix: function (partType) {
         let sterzoRuote = Math.min(Math.max(parseInt(this.sterzo), -45), 45); //Max rotazione fisica delle ruote 
-        let baseMatrix = getModelMatrix(this.worldMatrix, [1, 1, 1], [0, degToRad(this.facing), 0], [this.px, this.py, this.pz]);
+        let baseMatrix = getManipulationMatrix(this.worldMatrix, [1, 1, 1], [0, degToRad(this.facing), 0], [this.px, this.py, this.pz]);
         //baseMatrix*S*R*T
         if (partType === CAR_PARTS.BODY)
-            return getModelMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
+            return getManipulationMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
         else if (partType === CAR_PARTS.WHEEL_REAR_R)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(-this.mozzoP), degToRad(180), 0], [this.larghezzaAsse, this.raggioRuotaP - 0.28, this.posizioneAsseP]);
+            return getManipulationMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(-this.mozzoP), degToRad(180), 0], [this.larghezzaAsse, this.raggioRuotaP - 0.28, this.posizioneAsseP]);
         else if (partType === CAR_PARTS.WHEEL_REAR_L)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-this.larghezzaAsse, this.raggioRuotaP - 0.28, this.posizioneAsseP]);
+            return getManipulationMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaP, this.raggioRuotaP], [degToRad(this.mozzoP), 0, 0], [-this.larghezzaAsse, this.raggioRuotaP - 0.28, this.posizioneAsseP]);
         else if (partType === CAR_PARTS.WHEEL_FRONT_R)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180 + sterzoRuote), 0], [this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
+            return getManipulationMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(-this.mozzoA), degToRad(180 + sterzoRuote), 0], [this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
         else if (partType === CAR_PARTS.WHEEL_FRONT_L)
-            return getModelMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(sterzoRuote), 0], [-this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
+            return getManipulationMatrix(baseMatrix, [this.spallaRuota, this.raggioRuotaA, this.raggioRuotaA], [degToRad(this.mozzoA), degToRad(sterzoRuote), 0], [-this.larghezzaAsse, this.raggioRuotaA - 0.28, -this.posizioneAsseA]);
         else if (partType === CAR_PARTS.DRIVER)
-            return getModelMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
+            return getManipulationMatrix(baseMatrix, this.carlingaScale, [0, 0, 0], [0, 0, 0]);
         else
             return baseMatrix;
     },

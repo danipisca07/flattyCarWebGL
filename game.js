@@ -84,7 +84,7 @@ function drawScene(elapsed) {
     vCar.doStep(key);//Aggiornamento fisica della macchina
 
     /* Rendering delle ombre dinamiche sulla scena */
-    let textureMatrix = m4.identity();
+    let depthProjectionMatrix = m4.identity();
     //Utilizzo una proiezione dal punto luce per creare la shadow map
     let shadowProjectionSettings = {
         aspectRatio : 1,
@@ -97,14 +97,13 @@ function drawScene(elapsed) {
     }
     let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
     //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
-    textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
-    textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
-    textureMatrix = textureMatrix = m4.multiply(textureMatrix, lightViewProjectionMatrix);
+    depthProjectionMatrix = getManipulationMatrix(depthProjectionMatrix, [0.5, 0.5, 0.5], [0,0,0], [0.5, 0.5, 0.5]);
+    depthProjectionMatrix = m4.multiply(depthProjectionMatrix, lightViewProjectionMatrix);
     gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
     gl.viewport(0,0,depthTextureSize, depthTextureSize);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
-        setupShaders(gl, 'low'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
+        setupShaders(gl, 'shadowProjection'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
         sceneObjects.forEach((element) => {
             if(!element.noShadows)
                 renderElement(gl, element, lightViewProjectionMatrix)
@@ -154,7 +153,7 @@ function drawScene(elapsed) {
     setupShaders(gl, "skybox");
     renderSkybox(gl, skybox, viewProjectionMatrix);
     setupShaders(gl, gfxSettings);
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, textureMatrix)); //Ciclo di rendering degli oggetti
+    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, depthProjectionMatrix)); //Ciclo di rendering degli oggetti
 }
 
 /*
@@ -289,7 +288,7 @@ function loadFloor() {
                     shininess: 100000000000,
                 }
             ],
-            worldMatrix: getModelMatrix(m4.identity(), [50, 1, 50], [0, 0, 0], [0, 0, 0]),
+            worldMatrix: getManipulationMatrix(m4.identity(), [50, 1, 50], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
@@ -314,7 +313,7 @@ function loadFence() {
                 }
             ],
             noShadows : true,
-            worldMatrix: getModelMatrix(m4.identity(), [30, 20, 30], [0, 0, 0], [0, 0, 0]),
+            worldMatrix: getManipulationMatrix(m4.identity(), [30, 20, 30], [0, 0, 0], [0, 0, 0]),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },
@@ -404,7 +403,7 @@ function loadCube(position, textureUrl) {
                     shininess: 10000,
                 }
             ],
-            worldMatrix: getModelMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], position),
+            worldMatrix: getManipulationMatrix(m4.identity(), [1, 1, 1], [0, 0, degToRad(90)], position),
             getPartLocalMatrix: function (partType) {
                 return this.worldMatrix;
             },

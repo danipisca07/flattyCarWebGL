@@ -25,29 +25,9 @@ function multiplyVec3Scalar(v, scalar) {
 ////////////////////
 //FUNZIONI MATRICI
 ////////////////////
-//Funzione per ottere la matrice di manipolazione di un oggetto(anche composto da più parti) nello spazio, 
-// anche chiamata worldMatrix o modelMatrix, quindi applica le trasformazioni nell'ordine matrix*T*R*S
-function getManipulationMatrix(matrix, scale, rotation, translation) {
-    if (scale != undefined) {
-        if (scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione scale != 3!!");
-        matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    }
-    if (rotation != undefined) {
-        if (scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione rotation != 3!!");
-        matrix = m4.xRotate(matrix, rotation[0]);
-        matrix = m4.yRotate(matrix, rotation[1]);
-        matrix = m4.zRotate(matrix, rotation[2]);
-    }
-    if (translation != undefined) {
-        if (scale.length !== 3) alert("getManipulationMatrix: Attenzione, dimensione translation != 3!!");
-        matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    }
-    return matrix;
-}
-
 //Funzione per ottere la matrice di manipolazione di una parte di un oggetto rispetto alla worldMatrix dell' oggetto radice, 
 // solitamente chiamata LocalMatrix, quindi applica le trasformazioni nell'ordine matrix*S*R*T
-function getModelMatrix(matrix, scale, rotation, translation) {
+function getManipulationMatrix(matrix, scale, rotation, translation) {
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     matrix = m4.zRotate(matrix, rotation[2]);
     matrix = m4.yRotate(matrix, rotation[1]);
@@ -183,13 +163,13 @@ function renderSkybox(gl, skybox, viewProjectionMatrix){
     gl.drawArrays(gl.TRIANGLES, 0, 1*6);
 }
 
-function renderElement(gl, element, viewProjectionMatrix, opt_textureMatrix) {
+function renderElement(gl, element, viewProjectionMatrix, opt_depthProjectionMatrix) {
     let elementUniforms = {
         u_ambient : ambientLight,
         u_pointLightPosition : pointLightPosition,
         u_cameraPosition : cameraSettings.cameraPosition,
         u_depthTexture: getDepthTexture(),
-        u_textureMatrix : opt_textureMatrix != undefined ? opt_textureMatrix : m4.identity(),
+        u_depthProjectionMatrix : opt_depthProjectionMatrix != undefined ? opt_depthProjectionMatrix : m4.identity(),
     }
     let uniformSetters = webglUtils.createUniformSetters(gl, program);
     webglUtils.setUniforms(uniformSetters, elementUniforms);
