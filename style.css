@@ -1,6 +1,12 @@
 #uiContainer{
     display:none;
 }
+#ctrlTrigger:checked + #settings {
+    display: block;
+}
+#settings{
+    display:none;
+}
 #controlPanel{
     position: absolute;
     top: 20px;
@@ -9,6 +15,7 @@
     border: solid 1px black;
     padding: 5px;
     font-size: 1.5em;
+    display:none;
 }
 #startGame{
     position: fixed;
@@ -39,14 +46,18 @@
     width: 90vw;
 }
 #controlsLeft{
-    float: left;
+    position:absolute;
+    bottom: 0;
+    left: 0;
     text-align: center;
 }
 #controlsRight{
-    float: right;
+    position:absolute;
+    bottom: 0;
+    right: 0;
 }
 #onScreenControls input{
-    font-size: 6em;
+    font-size: 3em;
     padding: 15px;
     margin: 5px;
 }

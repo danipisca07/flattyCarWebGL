@@ -22,7 +22,7 @@ var translation = [0, 0, 0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
-var gfxSettings = 'shadows';
+var gfxSettings = 'high';
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
@@ -67,6 +67,7 @@ $(document).ready(function () {
 //Avvia il gioco
 function start(){
     document.getElementById("startGame").style.display = 'none';
+    document.getElementById("controlPanel").style.display = 'block';
     cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
     document.getElementById("cameraMode").disabled = false;
     //Abilita gli eventi di input
@@ -102,7 +103,7 @@ function drawScene(elapsed) {
     gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
-        setupShaders(gl, 'shadowProjection'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
+        setupShaders(gl, 'low'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
         sceneObjects.forEach((element) => {
             if(!element.noShadows)
                 renderElement(gl, element, lightViewProjectionMatrix)
@@ -510,13 +511,9 @@ function handleKey(e) {
     }
 }
 
-function toggleOnScreenControls(event) {
+function enableOnScreenControls() {
     var controls = document.getElementById("onScreenControls");
-    if (event.currentTarget.checked) {
-        controls.style.display = "block";
-    } else {
-        controls.style.display = "none";
-    }
+    controls.style.display = "block";
 }
 
 function eventBtn(btn, type) {

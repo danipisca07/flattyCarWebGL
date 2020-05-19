@@ -36,8 +36,7 @@
                 Il file si trova nella cartella principale, dove si trovano anche le cartelle 
                 <i>doc</i> (contenente informazioni sul progetto),  
                 <i>assets</i> (contenente alcuni file utilizzati dall'applicazione) e la cartella 
-                <i>scripts</i> contentente alcune
-                librerie javascript.
+                <i>scripts</i> (contentente alcune librerie javascript).
             </p>
         </div>
         <div id="scripts">
@@ -165,6 +164,22 @@ element = { //Vedere specifica organizzione oggetti
 }
 [texture = loadTexture(element, textureSrc)] //Se l'oggetto è texturato
                 </pre>         
+            </p>
+        </div>
+        <div id="ombre">
+            <h3>Impostazioni grafiche e ombre</h3>
+            <p>
+                Sono state definite varie impostazioni grafiche di vario livello:
+                <ul>
+                    <li>Bassa[low]: grafica di base senza nessuna illuminazione, solo oggetti con colori e texture</li>
+                    <li>Alta[high]: grafica con un modello di illuminazione simile al modello di phong</li>
+                    <li>Alta(con ombre)[shadows]: aggiunta di shadow mapping all'impostazione high</li>
+                </ul>
+                Per ognuna delle impostazioni è stata definita un apposita coppia di shader(vertex/fragment) all'interno del file <i>shaders.js</i>, 
+                lo shader corrispondente viene caricato ad ogni ciclo di rendering tramite la funzione <i>setupShaders(gfxSettings)</i>.
+                Nel file <i>shaders.js</i> è presente anche uno shader (<i>shadowProjection</i>) utilizzato per il calcolo della depth texture utilizzata per lo shadow mapping. 
+                Il calcolo della depth texture avviene ad ogni ciclo di rendering (se le ombre sono abilitate) prima del rendering della scena.
+                Nel file <i>shaders.js</i> è stato anche definito uno shader per il rendering dello skybox.
             </p>
         </div>
     </body>

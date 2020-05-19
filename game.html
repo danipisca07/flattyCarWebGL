@@ -36,12 +36,13 @@
   <canvas id="canvas"></canvas>
   <div id="controlPanel">
     <b>Pannello di controllo</b>
-    <div id="gfxSettings">
+    Mostra(<input id="ctrlTrigger" type="checkbox">)
+    <div id="settings">
       <label for="gfxSettings">Qualità grafica:</label>
       <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
         <option value="low">Bassa</option>
-        <option value="high">Alta</option>
-        <option value="shadows" selected>Alta(con ombre)</option>
+        <option value="high" selected>Alta</option>
+        <option value="shadows">Alta(con ombre)</option>
       </select><br />
       <label for="carQuality">Qualità modello macchina:</label>
       <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
@@ -57,15 +58,13 @@
       <br />
       <label for="alphaEnabler">Abilita trasparenza</label>
       <input type="checkbox" id="alphaEnabler" name="alphaEnabler" onchange="alphaBlending=!alphaBlending" checked/> <br/>
-      <label for="onScreenCtrlEnabler">Abilita controlli per touch screen</label>
-      <input type="checkbox" id="onScreenCtrlEnabler" name="onScreenCtrlEnabler" onchange="toggleOnScreenControls(event)" />
       
 
     </div>
   </div>
   <div id="gameUi">
     <p id="loading">Loading...</p>
-    <input type="button" id="startGame" value="Avvia!" onclick="start()"/>
+    <input type="button" id="startGame" value="Avvia!" ontouchstart="enableOnScreenControls()" onclick="start()"/>
     <div id="onScreenControls">
       <div id="controlsLeft">
         <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)"
