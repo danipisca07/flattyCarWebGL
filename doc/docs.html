@@ -85,6 +85,7 @@ var oggetto = {
     }
 }
             </pre>
+            Nota: se un oggetto non è texturato viene caricata una texture trasparente e quindi l'oggetto viene renderizzato utilizzando solamente il colore <i>u_color</i>.
         </div>
         <div id="rendering">
             <h3>Processo di rendering</h3>
@@ -175,6 +176,11 @@ element = { //Vedere specifica organizzione oggetti
                     <li>Alta[high]: grafica con un modello di illuminazione simile al modello di phong</li>
                     <li>Alta(con ombre)[shadows]: aggiunta di shadow mapping all'impostazione high</li>
                 </ul>
+                Come modello di illuminazione è stato utilizzata una versione semplificata di quello di phong, dove per ogni materiale anzichè dover specificare le componenti
+                Ka,Kd,Ks basta specificare il colore con le usuali componenti rgba in aggiunta all'usuale fattore "lucentezza" (shininess). E' stata fatta questa scelta 
+                in conseguenza del fatto che la libreria glm_light non effettua il caricamento dei materiali dai file .obj quindi sono stati inseriti direttamente nel codice 
+                sorgente, per questo motivo si è optato per la più semplice specifica tramite componenti rgba che comunque con l'aggiunta della componente shininess fornisce 
+                un risultato "accettabile" (anche se evidentemente lontano dal fotorealismo).
                 Per ognuna delle impostazioni è stata definita un apposita coppia di shader(vertex/fragment) all'interno del file <i>shaders.js</i>, 
                 lo shader corrispondente viene caricato ad ogni ciclo di rendering tramite la funzione <i>setupShaders(gfxSettings)</i>.
                 Nel file <i>shaders.js</i> è presente anche uno shader (<i>shadowProjection</i>) utilizzato per il calcolo della depth texture utilizzata per lo shadow mapping. 
