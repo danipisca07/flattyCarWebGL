@@ -22,8 +22,7 @@ var translation = [0, 0, 0];
 var rotation = [degToRad(0), degToRad(0), degToRad(0)];
 var scale = [1, 1, 1];
 
-var gfxSettings = 'high';
-var shadows = true;
+var gfxSettings = 'shadows';
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
@@ -102,7 +101,7 @@ function drawScene(elapsed) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
     gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(shadows && gfxSettings !== 'low'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
+    if(gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
         setupShaders(gl, 'shadowProjection'); //Per la proiezione delle ombre posso utilizzare la funzione di rendering con qualità bassa
         sceneObjects.forEach((element) => {
             if(!element.noShadows)
@@ -308,7 +307,7 @@ function loadFence() {
                     vertices: fenceMesh.vertices,
                     normals: fenceMesh.normals,
                     textCoord: fenceMesh.textCoord,
-                    color: [0, 0, 0, 0],
+                    color: [0,0,0,0],
                     shininess: 100000000000,
                 }
             ],

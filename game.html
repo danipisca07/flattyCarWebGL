@@ -39,11 +39,10 @@
     <div id="gfxSettings">
       <label for="gfxSettings">Qualità grafica:</label>
       <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
-        <option>low</option>
-        <option selected>high</option>
+        <option value="low">Bassa</option>
+        <option value="high">Alta</option>
+        <option value="shadows" selected>Alta(con ombre)</option>
       </select><br />
-      <label for="shadowsEnabler">Ombre</label>
-      <input type="checkbox" id="shadowsEnabler" name="shadowsEnabler" onchange="shadows = !shadows" checked/><br/>
       <label for="carQuality">Qualità modello macchina:</label>
       <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
         <option selected>low</option>

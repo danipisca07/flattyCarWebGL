@@ -272,6 +272,7 @@ let depthTexture, depthFramebuffer;
 function getDepthTextureSize(){
     if(depthTextureSize === undefined){
         depthTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        if(depthTextureSize > 8192) depthTextureSize = 8192;
         console.log("Using shadow projection texture of size: " + depthTextureSize);
     }
     return depthTextureSize;
