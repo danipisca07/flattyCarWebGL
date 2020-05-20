@@ -186,6 +186,8 @@ element = { //Vedere specifica organizzione oggetti
                 Nel file <i>shaders.js</i> è presente anche uno shader (<i>shadowProjection</i>) utilizzato per il calcolo della depth texture utilizzata per lo shadow mapping. 
                 Il calcolo della depth texture avviene ad ogni ciclo di rendering (se le ombre sono abilitate) prima del rendering della scena.
                 Nel file <i>shaders.js</i> è stato anche definito uno shader per il rendering dello skybox.
+
+                NOTA: le ombre non sono attualmente supportate su dispositivi mobile (vedi: <a href="https://stackoverflow.com/questions/25509968/shadow-mapping-in-webgl-without-webgl-depth-texture-on-android-devices">Discussione stackoverflow</a>)
             </p>
         </div>
     </body>

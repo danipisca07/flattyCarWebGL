@@ -21,7 +21,7 @@ var cameraSettings = {
 
 var key = [false, false, false, false]; //Vedi car.js per i codici tasti
 
-var gfxSettings = 'shadows'; //Impostazione grafica
+var gfxSettings = 'high'; //Impostazione grafica
 var alphaBlending = true; // On/Off trasparenze
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
