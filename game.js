@@ -23,6 +23,7 @@ var key = [false, false, false, false]; //Vedi car.js per i codici tasti
 
 var gfxSettings = 'high'; //Impostazione grafica
 var alphaBlending = true; // On/Off trasparenze
+var showDepthBuffer = false; //DEBUG: per visualizzare il depth buffer
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
 
@@ -77,37 +78,44 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
-    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    if(!showDepthBuffer)
+        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     vCar.doStep(key);//Aggiornamento fisica della macchina
-
     /* Rendering delle ombre dinamiche sulla scena */
     let depthProjectionMatrix = m4.identity(); //Matrice per la trasformazione di vista della depth texture
     //Utilizzo una proiezione dal punto luce verso il centro della scena per creare la shadow map
     let shadowProjectionSettings = {
         aspectRatio : 1,
         fieldOfViewRadians : degToRad(70),
-        zNear : 30,
+        zNear : 35,
         zFar : 50,
         cameraPosition : pointLightPosition,
-        lookAtTarget: [5,0,0], //Guardo al centro della scena
+        lookAtTarget: [3,0,0], //Guardo al centro della scena
         lookUpVector: [0,0,-1]
     }
     let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
     //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
     depthProjectionMatrix = getManipulationMatrix(depthProjectionMatrix, [0.5, 0.5, 0.5], [0,0,0], [0.5, 0.5, 0.5]);
     depthProjectionMatrix = m4.multiply(depthProjectionMatrix, lightViewProjectionMatrix);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer()); 
-    gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
+    if(!showDepthBuffer){
+        gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer());
+        gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
+    }
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
-        setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
+    if(showDepthBuffer || gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
+        if(!showDepthBuffer)
+            setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
+        else
+            setupShaders(gl, 'low'); //Utilizzo uno shader base per il debug
         sceneObjects.forEach((element) => {
             if(!element.noShadows) //Se l'oggetto non deve creare ombre non lo considero
                 renderElement(gl, element, lightViewProjectionMatrix)
         });
     }
+    if(showDepthBuffer)
+        return;
     /* Rendering della scena */
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
