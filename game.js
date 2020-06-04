@@ -48,7 +48,7 @@ $(document).ready(function () {
     loadFloor();
     loadFence();
     loadSkybox();
-    loadCube([0, 5, -10], './assets/f-tex.png');
+    loadCube([0, 5, -10], './assets/danielepiscaglia.jpg');
     loader.loadMesh('./assets/target.obj').then((data) => { //Precarica la mesh del bersaglio
         let targetMesh = loader.loadObj(data);
         targetData = {
