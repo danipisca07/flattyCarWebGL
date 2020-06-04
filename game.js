@@ -88,8 +88,8 @@ function drawScene(elapsed) {
     let shadowProjectionSettings = {
         aspectRatio : 1,
         fieldOfViewRadians : degToRad(70),
-        zNear : 1,
-        zFar : 100,
+        zNear : 30,
+        zFar : 50,
         cameraPosition : pointLightPosition,
         lookAtTarget: [5,0,0], //Guardo al centro della scena
         lookUpVector: [0,0,-1]

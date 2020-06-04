@@ -140,7 +140,7 @@ var shaderScripts = {
             
             //Shadows
             vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
-            float currentDepth = projectedTexcoord.z - 0.000018;
+            float currentDepth = projectedTexcoord.z - 0.005;
 
             bool inProjectionRange =
                 projectedTexcoord.x >= 0.0 &&
