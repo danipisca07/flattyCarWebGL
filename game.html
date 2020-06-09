@@ -66,7 +66,25 @@
   </div>
   <div id="gameUi">
     <p id="loading">Loading...</p>
-    <input type="button" id="startGame" value="Avvia!" ontouchstart="enableOnScreenControls()" onclick="start()"/>
+    <div id="startMenu">
+      <input type="button" id="startGame" value="Avvia!" ontouchstart="enableOnScreenControls()" onclick="start()"/>
+      <p>
+        <b>Controlli PC:</b><br/>
+        Movimento W,A,S,D<br/>
+        Freno a mano Spazio<br/>
+      </p>
+      <p>
+        <b>Controlli Gamepad:</b><br/>
+        Movimento Joystick o Freccette<br/>
+        Acceleratore RT/R2<br/>
+        Freno/Retromarcia LT/L2
+      </p>
+      <p>
+        <b>Controlli touch:</b><br/>
+        Utilizzare i tasti su schermo
+      </p>
+    </div>
+
     <div id="onScreenControls">
       <div id="controlsLeft">
         <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)"

@@ -14,14 +14,25 @@
     background: whitesmoke;
     border: solid 1px black;
     padding: 5px;
-    font-size: 1.5em;
+    font-size: 2rem;
     display:none;
 }
-#startGame{
+#startMenu{
+    text-align: right;
     position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
     right: 35px;
+    bottom: 15px;
+}
+#startMenu > p{
+    text-align: left;
+    font-size: 1rem;
+    padding: 2px;
+    margin: 5px;
+    background-color: rgba(255,255,255, 0.5);
+    border: solid 1px;
+}
+#startGame{
+
     font-size: 5em;
     padding: 15px;
     margin: 5px;

@@ -66,7 +66,7 @@ $(document).ready(function () {
 
 //Avvia il gioco
 function start(){
-    document.getElementById("startGame").style.display = 'none';
+    document.getElementById("startMenu").style.display = 'none';
     document.getElementById("controlPanel").style.display = 'block';
     cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
     document.getElementById("cameraMode").disabled = false;
