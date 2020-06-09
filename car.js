@@ -16,6 +16,7 @@ const CAR_PARTS = {
 }
 
 var vCar = {
+    name: 'vCar',
     //Funzione contenente la fisica del movimento della macchina. Richiamarla ogni volta che si deve aggiornare la sua posizione
     //keyPressed: Array [bool, bool, bool, bool] dove ogni posizione indica se il rispettivo tasto è stato premuto
     doStep: (keyPressed) => {
@@ -79,7 +80,7 @@ var vCar = {
         vCar.pz += vCar.vz;
     },
 
-    worldMatrix: m4.translation(0, 0.13, 0), //Offset di posizionamento sull'asfalto
+    worldMatrix: m4.translation(0, 0.2, 0), //Offset di posizionamento sull'asfalto
 
     //Restituisce le modelMatrix di ognuna delle parti che compongono la macchina per poter
     // passare direttamente alla renderizzazione di ognuna

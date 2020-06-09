@@ -38,8 +38,8 @@ $(document).ready(function () {
     gl = document.querySelector("#canvas").getContext("webgl");
     if (!gl) { alert("ERRORE! NESSUN CANVAS TROVATO!") }
     gl.clearColor(0, 0, 1, 0.2);
-    const ext = gl.getExtension('WEBGL_depth_texture');
-    if (!ext) {
+    gl.ext = gl.getExtension('WEBGL_depth_texture');
+    if (!gl.ext) {
         return alert('need WEBGL_depth_texture');
     }
 
@@ -78,6 +78,7 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
+    if(!gl.ext) showDepthBuffer = false;
     if(!showDepthBuffer)
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.enable(gl.CULL_FACE);
@@ -104,7 +105,7 @@ function drawScene(elapsed) {
         gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     }
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(showDepthBuffer || gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
+    if(gl.ext && (showDepthBuffer || gfxSettings === 'shadows')){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
         if(!showDepthBuffer)
             setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
         else
@@ -162,7 +163,10 @@ function drawScene(elapsed) {
     renderSkybox(gl, skybox, viewProjectionMatrix);
     //Render scena
     setupShaders(gl, gfxSettings);
-    sceneObjects.forEach((element) => renderElement(gl, element, viewProjectionMatrix, depthProjectionMatrix)); //Ciclo di rendering degli oggetti
+    for(let i = 0; i<sceneObjects.length; i++){
+        renderElement(gl, sceneObjects[i], viewProjectionMatrix, depthProjectionMatrix); //Ciclo di rendering degli oggetti
+    }
+
 }
 
 /*
@@ -181,6 +185,7 @@ function generateNewTarget() {
         startPos[2] = vCar.pz + (Math.random() - 0.5) * 2 * newTargetMaxDistance;
     } while(Math.sqrt( Math.pow(startPos[0],2) + Math.pow(startPos[2],2) ) > vCar.maxD -8);
     var target = {
+        name: 'target'+sceneObjects.length,
         parts: [
             targetData //Utilizzo la mesh precaricata (con buffers e texture)
         ],
@@ -192,8 +197,8 @@ function generateNewTarget() {
                 if (dist < 0.75) { //Distanza dalla macchina minima per essere colpito
                     this.hit = true;
                     //Calcolo la nuova worldMatrix, con il bersaglio schiacciato a terra, che rimarra invariata d'ora in poi
-                    let newPos = [startPos[0], startPos[1] - 0.1, startPos[2]];
-                    let matrix = m4.lookAt(newPos, [vCar.px, vCar.py, vCar.pz], cameraSettings.lookUpVector);
+                    let newPos = [startPos[0], startPos[1] - 0.15, startPos[2]];
+                    let matrix = m4.lookAt(newPos, [vCar.px, 0, vCar.pz], cameraSettings.lookUpVector);
                     matrix = m4.scale(matrix, 0.5, 0.5, 0.5);
                     matrix = m4.xRotate(matrix, degToRad(45));
                     this.worldMatrix = matrix; //Salvo la worldMatrix in modo da non doverla ricaricare più
@@ -288,6 +293,7 @@ function loadFloor() {
     loader.loadMesh('./assets/floor.obj').then((data) => {
         let floorMesh = loader.loadObj(data);
         var floor = {
+            name: 'floor',
             parts: [
                 {
                     vertices: floorMesh.vertices,
@@ -312,6 +318,7 @@ function loadFence() {
     loader.loadMesh('./assets/fence.obj').then((data) => {
         let fenceMesh = loader.loadObj(data);
         var fence = {
+            name: 'fence',
             parts: [
                 {
                     vertices: fenceMesh.vertices,
@@ -404,6 +411,7 @@ function loadCube(position, textureUrl) {
     loader.loadMesh('./assets/texturedCube.obj').then((data) => {
         let cubeMesh = loader.loadObj(data);
         var cube = {
+            name: 'texturedCube',
             parts: [
                 {
                     vertices: cubeMesh.vertices,
