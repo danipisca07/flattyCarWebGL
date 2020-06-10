@@ -268,9 +268,10 @@ function getTransparentTexture(){
 ////////////////////
 // OMBRE
 ////////////////////
-let depthTextureSize; //Risoluzione ombre
+let depthTextureSize; //Risoluzione texture per ombre
 let depthTexture, depthFramebuffer;
 
+// Imposta la massima risoluzione grafica supportata per la depth projection (cap a 8192px)
 function getDepthTextureSize(){
     if(depthTextureSize === undefined){
         depthTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE); //Ottengo la dimensione massima in base a quella supportata dalla GPU

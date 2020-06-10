@@ -80,7 +80,7 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
-    if(!gl.ext) showDepthBuffer = false;
+    if(!gl.ext) showDepthBuffer = false; //Se l'estensione WEBGL_depth_texture nonè disponibile disattivo le ombre
     if(!showDepthBuffer)
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.enable(gl.CULL_FACE);
@@ -107,7 +107,7 @@ function drawScene(elapsed) {
         gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
     }
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(gl.ext && (showDepthBuffer || gfxSettings === 'shadows')){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata)
+    if(gl.ext && (showDepthBuffer || gfxSettings === 'shadows')){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata) (e estensione disponibile)
         if(!showDepthBuffer)
             setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
         else
@@ -118,7 +118,7 @@ function drawScene(elapsed) {
         });
     }
     if(showDepthBuffer)
-        return;
+        return; //Se è attivo il debug del'depthBuffer salto il normale processo di rendering
     /* Rendering della scena */
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);

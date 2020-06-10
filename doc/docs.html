@@ -68,6 +68,7 @@
             <p>Al fine di organizzare la scena, si è scelto di utilizzare uno schema ben definito per ogni oggetto che dovrà essere renderizzato.</p>
             <pre>
 var oggetto = {
+    [name:] //Nome per riconoscere l'oggetto in fase di debug
     parts : [  //Array contenente tutte le parti(componenti) dell' oggetto
         {
             [type:]             //Tipo dell'oggetto (es. Carrozzeria, RuotaAnterioreSX ecc...) 
@@ -96,7 +97,7 @@ var oggetto = {
                     <li>Caricare gli shader</li>
                     <li>Calcolare le matrici di manipolazione locali di ogni oggetto</li>
                     <li>Impostare i buffer per attributes e uniforms webGL</li>
-                    <li>Effettuare il rendering tramite la <i>gl.drawArrays</i></li>
+                    <li>Effettuare il rendering tramite la <i>gl.drawArrays</i> o la <i>gl.drawElements</i> a seconda della necessità</li>
                 </ul>
                 Sequenza di chiamate in pseudocodice:
                 <pre>
@@ -177,17 +178,23 @@ element = { //Vedere specifica organizzione oggetti
                     <li>Alta(con ombre)[shadows]: aggiunta di shadow mapping all'impostazione high</li>
                 </ul>
                 Come modello di illuminazione è stato utilizzata una versione semplificata di quello di phong, dove per ogni materiale anzichè dover specificare le componenti
-                Ka,Kd,Ks basta specificare il colore con le usuali componenti rgba in aggiunta all'usuale fattore "lucentezza" (shininess). E' stata fatta questa scelta 
-                in conseguenza del fatto che la libreria glm_light non effettua il caricamento dei materiali dai file .obj quindi sono stati inseriti direttamente nel codice 
-                sorgente, per questo motivo si è optato per la più semplice specifica tramite componenti rgba che comunque con l'aggiunta della componente shininess fornisce 
-                un risultato "accettabile" (anche se evidentemente lontano dal fotorealismo).
-                Per ognuna delle impostazioni è stata definita un apposita coppia di shader(vertex/fragment) all'interno del file <i>shaders.js</i>, 
-                lo shader corrispondente viene caricato ad ogni ciclo di rendering tramite la funzione <i>setupShaders(gfxSettings)</i>.
-                Nel file <i>shaders.js</i> è presente anche uno shader (<i>shadowProjection</i>) utilizzato per il calcolo della depth texture utilizzata per lo shadow mapping. 
-                Il calcolo della depth texture avviene ad ogni ciclo di rendering (se le ombre sono abilitate) prima del rendering della scena.
-                Nel file <i>shaders.js</i> è stato anche definito uno shader per il rendering dello skybox.
+                Ka,Kd,Ks basta specificare il colore con le usuali componenti rgba in aggiunta all'usuale fattore "lucentezza" (shininess). <br/>
+                E' stata fatta questa scelta in conseguenza del fatto che la libreria glm_light non effettua il caricamento dei materiali dai file .obj quindi sono stati inseriti
+                direttamente nel codice sorgente, per questo motivo si è optato per la più semplice specifica tramite componenti rgba che comunque con l'aggiunta della componente
+                shininess fornisce un risultato "accettabile" (anche se evidentemente lontano dal fotorealismo). <br/>
+                Per ognuna delle impostazioni (low/high/shadows) è stata definita un apposita coppia di shader(vertex/fragment) all'interno del file <i>shaders.js</i>,
+                lo shader corrispondente viene caricato ad ogni ciclo di rendering tramite la funzione <i>setupShaders(gfxSettings)</i>. <br/>
+                Nel file <i>shaders.js</i> è presente anche uno shader (<i>shadowProjection</i>) utilizzato per il calcolo della depth texture utilizzata per lo shadow mapping.
+                Il calcolo della depth texture avviene ad ogni ciclo di rendering (se le ombre sono abilitate) prima del rendering della scena. <br/>
+                Nel file <i>shaders.js</i> è stato anche definito uno shader per il rendering dello skybox. <br/>
+                <br/>
+                <h4>NOTA ombre su dispositivi mobili:</h4>
+                Le ombre causano parecchi artefatti sui dispositivi mobili a causa della precisione dimezzata dei float su molti dispositivi. Questo inoltre porta alla necessità di un valore di bias molto alto.
+                (Per ulteriori info: <a href="https://stackoverflow.com/questions/25509968/shadow-mapping-in-webgl-without-webgl-depth-texture-on-android-devices">Discussione stackoverflow</a>) <br/>
+                <br/>
+                Per ridurre il problema ho cercato di ridurre il più possibile la differenza tra i valori near/far della camera utilizzata per la depth projection in modo da contenere perfettamente la scena ad ogni modo il problema
+                è completamente risolto. Inoltre avendo utilizzato una "luce punto", la camera richiede un FoV abbastanza grande (in modo da comprire l'intera scena) e questo comporta una scarsa precisione. <br/>
 
-                NOTA: le ombre non sono attualmente supportate su dispositivi mobile (vedi: <a href="https://stackoverflow.com/questions/25509968/shadow-mapping-in-webgl-without-webgl-depth-texture-on-android-devices">Discussione stackoverflow</a>)
             </p>
         </div>
     </body>

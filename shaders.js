@@ -71,13 +71,6 @@ var shaderScripts = {
             gl_FragColor = tex + u_color * (1.-tex.a);
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight;
-
-            //DEBUG
-            //gl_FragColor = vec4(normalize(v_projectedTexcoord.xyz), 1.);
-            //gl_FragColor = vec4(normal, 1.0);
-            //float val = shadowLight;
-            //gl_FragColor = vec4(val, val, val, 1.0);
-            //gl_FragColor = texture2D(u_depthTexture, vec2(gl_FragCoord.x/1184., gl_FragCoord.y/998.));
         }`,
     },
     shadows : {
@@ -161,13 +154,6 @@ var shaderScripts = {
             gl_FragColor = tex + u_color * (1.-tex.a);
             gl_FragColor.rgb *= light;
             gl_FragColor.rgb += specularLight * shadowLight;
-
-            //DEBUG
-            //gl_FragColor = vec4(normalize(v_projectedTexcoord.xyz), 1.);
-            //gl_FragColor = vec4(normal, 1.0);
-            //float val = shadowLight;
-            //gl_FragColor = vec4(val, val, val, 1.0);
-            //gl_FragColor = texture2D(u_depthTexture, vec2(gl_FragCoord.x/1184., gl_FragCoord.y/998.));
         }`,
     },
     skybox: {
