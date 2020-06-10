@@ -17,6 +17,20 @@
     font-size: 2rem;
     display:none;
 }
+#score{
+    position: fixed;
+    top: 5px;
+    left: 10px;
+    display: none; /* settato a flex dal codice all avvio del gioco */
+    padding: 3px;
+    background-color: rgba(100,100,100, 0.5);
+    color: white;
+    border: solid 1px black;
+}
+#score p{
+    margin: 0;
+    font-size: 2rem;
+}
 #startMenu{
     text-align: right;
     position: fixed;

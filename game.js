@@ -32,6 +32,7 @@ var skybox; //Lo skybox viene mantenuto separatamente in quanto non influenzato 
 var sceneObjects = new Array(); //Array contenente tutti gli oggetti della scena
 var targetData; //Oggetto dove salverò i dati dell'oggetto bersaglio in modo da non doverlo ricaricare più volte
 var newTargetMaxDistance = 10; //Massima distanza di spawn di un nuovo bersaglio dalla posizione attuale della macchina
+var score = 0; //Punteggio
 
 //Funzione di inizializzazione
 $(document).ready(function () {
@@ -68,6 +69,7 @@ $(document).ready(function () {
 function start(){
     document.getElementById("startMenu").style.display = 'none';
     document.getElementById("controlPanel").style.display = 'block';
+    document.getElementById("score").style.display = 'flex';
     cameraSettings.cameraMode = CAMERA_MODE.THIRD_PERSON;
     document.getElementById("cameraMode").disabled = false;
     //Abilita gli eventi di input
@@ -175,6 +177,15 @@ function drawScene(elapsed) {
 //
 */
 
+function scoreHandler(){
+    score++;
+    document.getElementById("scoreElement").innerText = score;
+    document.getElementById("score").style.color = 'red'; //Cambia il colore del punteggio per evidenziare il punto
+    setTimeout(() => {
+        document.getElementById("score").style.color = 'white'; //Ripristina il colore dopo un secondo
+    }, 150);
+}
+
 //Genera un nuovo oggetto bersaglio automaticamente in una posizione casuale 
 //(in una distanza limitata dalla posizione attuale del giocatore)
 function generateNewTarget() {
@@ -203,6 +214,7 @@ function generateNewTarget() {
                     matrix = m4.xRotate(matrix, degToRad(45));
                     this.worldMatrix = matrix; //Salvo la worldMatrix in modo da non doverla ricaricare più
                     generateNewTarget(); //Genero il prossimo bersaglio
+                    scoreHandler(); //Aggiorno punteggio
                 }
             }
             if (this.worldMatrix !== undefined) { //Se ho già caricato la worldMatrix finale significa che son già stato colpito
