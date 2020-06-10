@@ -1,0 +1,113 @@
+<html>
+
+<head>
+  <style>
+
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+  <!-- Librerie di utility-->
+  <script type="text/javascript" src="./scripts/webgl-utils.js"></script>
+  <script type="text/javascript" src="./scripts/m4.js"></script>
+
+  <!-- Caricamento OBJ-->
+  <script src="./scripts/subdiv.js"></script>
+  <script src="./scripts/mesh_utils.js"></script>
+  <script src="./scripts/glm_light.js"></script>
+  <script type="text/javascript" src="./scripts/jquery-3.5.0.js"></script>
+
+  <!-- Script personali -->
+  <script type="text/javascript" src="./shaders.js"></script>
+  <script type="text/javascript" src="./car.js"></script>
+  <script type="text/javascript" src="./my-webgl-lib.js"></script>
+  <script type="text/javascript" src="./gamepad.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="controlPanel">
+    <b>Pannello di controllo</b>
+    Mostra(<input id="ctrlTrigger" type="checkbox">)
+    <div id="settings">
+      <label for="gfxSettings">Qualità grafica:</label>
+      <select id="gfxSettings" name="gfxSettings" onchange="gfxSettings=event.target.value">
+        <option value="low">Bassa</option>
+        <option value="high" selected>Alta</option>
+        <option value="shadows">Alta(con ombre)</option>
+      </select><br />
+      <label for="carQuality">Qualità modello macchina:</label>
+      <select id="carQuality" name="carQuality" onchange="loadCar(event.target.value)">
+        <option selected>low</option>
+        <option>high</option>
+      </select><br />
+      <label for="cameraMode">Camera:</label>
+      <select id="cameraMode" name="cameraMode" onchange="changeCameraHandler(event)" disabled>
+        <option>Prima persona</option>
+        <option selected>Terza persona</option>
+        <option>Dall'alto</option>
+      </select>
+      <br />
+      <label for="alphaEnabler">Abilita trasparenza</label>
+      <input type="checkbox" id="alphaEnabler" name="alphaEnabler" onchange="alphaBlending=!alphaBlending" checked/> <br/>
+      
+
+    </div>
+  </div>
+  <div id="gameUi">
+    <div id="score">
+      <p>Punteggio: </p>
+      <p id="scoreElement">0</p>
+    </div>
+    <p id="loading">Loading...</p>
+    <div id="startMenu">
+      <input type="button" id="startGame" value="Avvia!" ontouchstart="enableOnScreenControls()" onclick="start()"/>
+      <p>
+        <b>Controlli PC:</b><br/>
+        Movimento W,A,S,D<br/>
+        Freno a mano Spazio<br/>
+      </p>
+      <p>
+        <b>Controlli Gamepad:</b><br/>
+        Movimento Joystick o Freccette<br/>
+        Acceleratore RT/R2<br/>
+        Freno/Retromarcia LT/L2
+      </p>
+      <p>
+        <b>Controlli touch:</b><br/>
+        Utilizzare i tasti su schermo
+      </p>
+    </div>
+
+    <div id="onScreenControls">
+      <div id="controlsLeft">
+        <input type="button" id="upBtn" value="↑" ontouchstart="eventBtn('up',true)"
+          ontouchend="eventBtn('up', false)" />
+        <br />
+        <input type="button" id="brakeBtn" value="Brake" ontouchstart="eventBtn('brake',true)"
+          ontouchend="eventBtn('brake', false)" />
+        <br />
+        <input type="button" id="downBtn" value="↓" ontouchstart="eventBtn('down',true)"
+          ontouchend="eventBtn('down', false)" />
+      </div>
+      <div id="controlsRight">
+        <input type="button" id="leftBtn" value="←" ontouchstart="eventBtn('left',true)"
+          ontouchend="eventBtn('left', false)" />
+        <input type="button" id="rightBtn" value="→" ontouchstart="eventBtn('right',true)"
+          ontouchend="eventBtn('right', false)" />
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="./game.js"></script>
+
+</body>
+
+</html>

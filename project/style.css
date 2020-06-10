@@ -1,0 +1,88 @@
+#uiContainer{
+    display:none;
+}
+#ctrlTrigger:checked + #settings {
+    display: block;
+}
+#settings{
+    display:none;
+}
+#controlPanel{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: whitesmoke;
+    border: solid 1px black;
+    padding: 5px;
+    font-size: 2rem;
+    display:none;
+}
+#score{
+    position: fixed;
+    top: 5px;
+    left: 10px;
+    display: none; /* settato a flex dal codice all avvio del gioco */
+    padding: 3px;
+    background-color: rgba(100,100,100, 0.5);
+    color: white;
+    border: solid 1px black;
+}
+#score p{
+    margin: 0;
+    font-size: 2rem;
+}
+#startMenu{
+    text-align: right;
+    position: fixed;
+    right: 35px;
+    bottom: 15px;
+}
+#startMenu > p{
+    text-align: left;
+    font-size: 1rem;
+    padding: 2px;
+    margin: 5px;
+    background-color: rgba(255,255,255, 0.5);
+    border: solid 1px;
+}
+#startGame{
+
+    font-size: 5em;
+    padding: 15px;
+    margin: 5px;
+}
+#loading{
+    position: fixed;
+    display: none;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+    font-size: xx-large;
+    background: white;
+    border: solid 2px black;
+    padding: 5px;
+}
+#onScreenControls{
+    display:none;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90vw;
+}
+#controlsLeft{
+    position:absolute;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+}
+#controlsRight{
+    position:absolute;
+    bottom: 0;
+    right: 0;
+}
+#onScreenControls input{
+    font-size: 3em;
+    padding: 15px;
+    margin: 5px;
+}
