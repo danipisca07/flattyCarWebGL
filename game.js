@@ -23,9 +23,19 @@ var key = [false, false, false, false]; //Vedi car.js per i codici tasti
 
 var gfxSettings = 'high'; //Impostazione grafica
 var alphaBlending = true; // On/Off trasparenze
-var showDepthBuffer = false; //DEBUG: per visualizzare il depth buffer
 var ambientLight = 0.2; //Illuminazione di base (ambiente)
 var pointLightPosition = [10, 40, 0.0]; //Posizione punto luce
+
+//Proiezione dal punto luce verso il centro della scena per creare la shadow map
+let shadowProjectionSettings = {
+    aspectRatio : 1,
+    fieldOfViewRadians : degToRad(70),
+    zNear : 35,
+    zFar : 50,
+    cameraPosition : pointLightPosition,
+    lookAtTarget: [3,0,0], //Guardo al centro della scena
+    lookUpVector: [0,0,-1]
+}
 
 var gl;
 var skybox; //Lo skybox viene mantenuto separatamente in quanto non influenzato dall'illuminazione
@@ -80,45 +90,27 @@ function start(){
 
 // Metodo di rendering
 function drawScene(elapsed) {
-    if(!gl.ext) showDepthBuffer = false; //Se l'estensione WEBGL_depth_texture nonè disponibile disattivo le ombre
-    if(!showDepthBuffer)
-        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     vCar.doStep(key);//Aggiornamento fisica della macchina
+
     /* Rendering delle ombre dinamiche sulla scena */
     let depthProjectionMatrix = m4.identity(); //Matrice per la trasformazione di vista della depth texture
-    //Utilizzo una proiezione dal punto luce verso il centro della scena per creare la shadow map
-    let shadowProjectionSettings = {
-        aspectRatio : 1,
-        fieldOfViewRadians : degToRad(70),
-        zNear : 35,
-        zFar : 50,
-        cameraPosition : pointLightPosition,
-        lookAtTarget: [3,0,0], //Guardo al centro della scena
-        lookUpVector: [0,0,-1]
-    }
-    let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
-    //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
-    depthProjectionMatrix = getManipulationMatrix(depthProjectionMatrix, [0.5, 0.5, 0.5], [0,0,0], [0.5, 0.5, 0.5]);
-    depthProjectionMatrix = m4.multiply(depthProjectionMatrix, lightViewProjectionMatrix);
-    if(!showDepthBuffer){
+    if(gl.ext && gfxSettings === 'shadows'){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata) (e estensione disponibile)
+        let lightViewProjectionMatrix = getViewProjectionMatrixLookAt(gl, shadowProjectionSettings);
+        //Devo scalare e traslare la matrice texture perchè altrimenti viene utilizzato solamente il "quarto" di quadrante in alto a destra del frustrum di proiezione
+        depthProjectionMatrix = getManipulationMatrix(depthProjectionMatrix, [0.5, 0.5, 0.5], [0,0,0], [0.5, 0.5, 0.5]);
+        depthProjectionMatrix = m4.multiply(depthProjectionMatrix, lightViewProjectionMatrix);
         gl.bindFramebuffer(gl.FRAMEBUFFER, getDepthFramebuffer());
         gl.viewport(0,0,getDepthTextureSize(), getDepthTextureSize());
-    }
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(gl.ext && (showDepthBuffer || gfxSettings === 'shadows')){//Calcola ombre solo se attive e impostazione su high (illuminazione abilitata) (e estensione disponibile)
-        if(!showDepthBuffer)
-            setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
-        else
-            setupShaders(gl, 'low'); //Utilizzo uno shader base per il debug
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        setupShaders(gl, 'shadowProjection'); //Imposto lo shader per la proizione delle ombre
         sceneObjects.forEach((element) => {
             if(!element.noShadows) //Se l'oggetto non deve creare ombre non lo considero
                 renderElement(gl, element, lightViewProjectionMatrix)
         });
     }
-    if(showDepthBuffer)
-        return; //Se è attivo il debug del'depthBuffer salto il normale processo di rendering
     /* Rendering della scena */
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -129,7 +121,8 @@ function drawScene(elapsed) {
     } else{
         gl.disable(gl.BLEND);
     }
-    
+
+    /* Calcolo matrice viewProjection per la camera corrente */
     let viewProjectionMatrix;
     switch (cameraSettings.cameraMode) {
         case (CAMERA_MODE.MENU):
@@ -453,7 +446,7 @@ var loader = {
             url: filename,
             dataType: 'text',
         }).fail(function () {
-            //alert('File [' + filename + "] non trovato!");
+            alert('File [' + filename + "] non trovato!");
         });
     },
 
