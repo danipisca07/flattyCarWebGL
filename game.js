@@ -59,7 +59,7 @@ $(document).ready(function () {
             color: [0, 0, 0, 1],
             shininess: 100,
         }
-        loader.loadTexture(gl, targetData, './assets/target.jpg');
+        loader.loadTexture(gl, targetData, './assets/target.jpg', true);
         createBuffers(gl, targetData);
     });
     startAnimating(60, drawScene);//Avvia la renderizzazione della scena a 60 fps
@@ -272,7 +272,7 @@ function loadCar(setting) {
         doors.color = bodyColor;
         doors.shininess = 100;
         createBuffers(gl, doors);
-        loader.loadTexture(gl, doors, './assets/lee-number.png'); //Carico la texture
+        loader.loadTexture(gl, doors, './assets/lee-number.png', true); //Carico la texture
         vCar.parts[5] = doors;
     });
     loader.loadMesh('./assets/driver.obj').then((data) => { //Pilota
@@ -320,7 +320,7 @@ function loadFloor() {
                 return this.worldMatrix;
             },
         };
-        loader.loadTexture(gl, floor.parts[0], './assets/skybox/neg-y.png', true);
+        loader.loadTexture(gl, floor.parts[0], './assets/skybox/neg-y.png', false);
         createBuffers(gl, floor.parts[0]);
         sceneObjects.unshift(floor); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
@@ -346,7 +346,7 @@ function loadFence() {
                 return this.worldMatrix;
             },
         };
-        loader.loadTexture(gl, fence.parts[0], './assets/fence.png', true);
+        loader.loadTexture(gl, fence.parts[0], './assets/fence.png', false);
         createBuffers(gl, fence.parts[0]);
         sceneObjects.push(fence); //Aggiungo il pavimento all'inizio della lista degli oggetti dato che non ha trasparenza
     });
@@ -439,7 +439,7 @@ function loadCube(position, textureUrl) {
             },
         };
         createBuffers(gl, cube.parts[0]);
-        loader.loadTexture(gl, cube.parts[0], textureUrl);
+        loader.loadTexture(gl, cube.parts[0], textureUrl, true);
         sceneObjects.unshift(cube); //Aggiungo il cubo all'inizio della lista degli oggetti dato che non ha trasparenza
     });
 }
@@ -500,12 +500,12 @@ var loader = {
         return newPart;
     },
 
-    loadTexture : function (gl, target, textureSrc, generateMipmap) {
-        generateMipmap = generateMipmap === undefined ? false : generateMipmap;
+    loadTexture : function (gl, target, textureSrc, clampToEdge) {
+        clampToEdge = clampToEdge === undefined ? false : clampToEdge;
         let texImage = new Image();
         texImage.src = textureSrc;
         texImage.addEventListener('load', () => {
-            createTexture(gl, target, texImage, generateMipmap);
+            createTexture(gl, target, texImage, clampToEdge);
         });
     }
 }

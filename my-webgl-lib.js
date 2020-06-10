@@ -237,16 +237,18 @@ function createBuffers(gl, part) {
 
 }
 
-function createTexture(gl, part, texImage, generateMipmap) {
+//Carica una texture nei buffer e la applica alla parte indicata di un oggetto.
+// Tramite il parametro clampToEdge è possibile indicare se la texture deve essere ripetuta per coprire tutto l'oggetto (gl.CLAMP_TO_EDGE)
+function createTexture(gl, part, texImage, clampToEdge) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texImage);
-    if(generateMipmap)
-        gl.generateMipmap(gl.TEXTURE_2D);
-    else {
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    if(clampToEdge){
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }    
     part.texture = texture;
     gl.bindTexture(gl.TEXTURE_2D, null);
